@@ -14,6 +14,9 @@
   --scale-card-title-en: 1;
   --scale-card-meta: 1;
   --scale-card-summary: 1;
+  --intro-eyebrow-x: -8px;
+  --intro-title-x: -8px;
+  --intro-lede-x: -8px;
 }
 
 * {
