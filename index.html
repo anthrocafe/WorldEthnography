@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>World Ethnography Globe Demo</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=19" />
   </head>
   <body>
     <main class="page-shell">
@@ -16,10 +16,26 @@
 
       <section class="globe-stage" aria-label="Interactive outlined globe">
         <canvas id="globeCanvas"></canvas>
+        <div id="regionCoverLayer" class="region-cover-layer" aria-hidden="true"></div>
         <div class="vignette" aria-hidden="true"></div>
       </section>
 
+      <button id="globeFocusBack" class="globe-focus-back" type="button" aria-label="返回全球视图">
+        返回全球视图
+      </button>
+
       <aside id="bookCard" class="book-card is-hidden" aria-live="polite">
+        <div class="book-card-actions">
+          <div class="book-card-nav is-hidden" id="bookCardNav" aria-label="切换同地点民族志">
+            <button class="book-card-nav-btn" id="bookCardPrev" type="button" aria-label="上一本民族志">
+              ‹
+            </button>
+            <span class="book-card-nav-count" id="bookCardCount"></span>
+            <button class="book-card-nav-btn" id="bookCardNext" type="button" aria-label="下一本民族志">
+              ›
+            </button>
+          </div>
+        </div>
         <button id="bookCardClose" class="book-card-close" type="button" aria-label="关闭卡片">
           ×
         </button>
@@ -41,7 +57,7 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
-    <script src="./books-data.js?v=6"></script>
-    <script src="./globe.js?v=15"></script>
+    <script src="./books-data.js?v=12"></script>
+    <script src="./globe.js?v=45"></script>
   </body>
 </html>
