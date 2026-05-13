@@ -4,14 +4,33 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>World Ethnography Globe Demo</title>
-    <link rel="stylesheet" href="./styles.css?v=19" />
+    <link rel="stylesheet" href="./styles.css?v=30" />
   </head>
   <body>
     <main class="page-shell">
       <section class="intro" aria-label="Global ethnography introduction">
-        <p class="eyebrow intro-draggable" data-intro-key="eyebrow">全球民族志地图</p>
-        <h1 class="intro-draggable" data-intro-key="title">World Ethnography</h1>
-        <p class="lede intro-draggable" data-intro-key="lede">自由拖动地球，探索全球各个角落的民族志作品。</p>
+        <div class="intro-copy-rise">
+          <p class="eyebrow intro-draggable" data-intro-key="eyebrow">全球民族志地图</p>
+          <h1 class="intro-draggable" data-intro-key="title">World Ethnography</h1>
+          <p class="lede intro-draggable" data-intro-key="lede">自由拖动地球，探索全球各个角落的民族志作品。</p>
+          <div class="intro-keyword intro-draggable" data-intro-key="keyword">
+            <label class="intro-keyword-glass" id="keywordSearchGlass" for="keywordSearch">
+              <div class="intro-keyword-field">
+                <span class="intro-keyword-width-measure" aria-hidden="true">搜索关键词，定位民族志作品</span>
+                <span class="intro-keyword-hint" aria-hidden="true">搜索关键词，定位民族志作品</span>
+                <input
+                  id="keywordSearch"
+                  class="intro-keyword-input"
+                  type="search"
+                  name="keyword"
+                  autocomplete="off"
+                  enterkeyhint="search"
+                  aria-label="按关键词筛选地图上的民族志"
+                />
+              </div>
+            </label>
+          </div>
+        </div>
       </section>
 
       <section class="globe-stage" aria-label="Interactive outlined globe">
@@ -24,23 +43,36 @@
         返回全球视图
       </button>
 
+      <div class="focus-cover-notice" role="note" aria-label="图书封面使用说明">
+        <p class="focus-cover-notice__zh">
+          网站中出现的图书封面仅用于作品介绍、评论与学术传播，<br />
+          版权归原出版社或相关权利人所有。
+        </p>
+        <p class="focus-cover-notice__en">
+          Book covers are displayed for identification, commentary, and educational&nbsp;purposes&nbsp;only.<br />
+          All rights belong to their respective copyright holders.
+        </p>
+      </div>
+
       <aside id="bookCard" class="book-card is-hidden" aria-live="polite">
-        <div class="book-card-actions">
-          <div class="book-card-nav is-hidden" id="bookCardNav" aria-label="切换同地点民族志">
-            <button class="book-card-nav-btn" id="bookCardPrev" type="button" aria-label="上一本民族志">
-              ‹
-            </button>
-            <span class="book-card-nav-count" id="bookCardCount"></span>
-            <button class="book-card-nav-btn" id="bookCardNext" type="button" aria-label="下一本民族志">
-              ›
+        <div class="book-card-loc-wrap" aria-label="田野地点">
+          <div class="book-card-loc-row">
+            <p class="book-card-location book-card-location-zh" id="bookLocationZh"></p>
+            <div class="book-card-actions">
+              <div class="book-card-nav is-hidden" id="bookCardNav" aria-label="切换同地点民族志">
+                <button class="book-card-nav-btn" id="bookCardPrev" type="button" aria-label="上一本民族志">
+                  ‹
+                </button>
+                <span class="book-card-nav-count" id="bookCardCount"></span>
+                <button class="book-card-nav-btn" id="bookCardNext" type="button" aria-label="下一本民族志">
+                  ›
+                </button>
+              </div>
+            </div>
+            <button id="bookCardClose" class="book-card-close" type="button" aria-label="关闭卡片">
+              ×
             </button>
           </div>
-        </div>
-        <button id="bookCardClose" class="book-card-close" type="button" aria-label="关闭卡片">
-          ×
-        </button>
-        <div class="book-card-loc-wrap" aria-label="田野地点">
-          <p class="book-card-location book-card-location-zh" id="bookLocationZh"></p>
           <p class="book-card-location book-card-location-en" id="bookLocationEn"></p>
         </div>
         <p class="book-card-title book-card-title-zh" id="bookTitleZh"></p>
@@ -57,7 +89,7 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
-    <script src="./books-data.js?v=12"></script>
-    <script src="./globe.js?v=45"></script>
+    <script src="./books-data.js?v=23"></script>
+    <script src="./globe.js?v=74"></script>
   </body>
 </html>

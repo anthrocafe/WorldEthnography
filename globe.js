@@ -11,7 +11,7 @@ const TILT_DEFAULT = -Math.PI / 6;
 const REGION_FOCUS = {
   amazon: {
     id: "amazon",
-    label: "泛亚马逊",
+    label: "亚马逊-安第斯",
     centerLon: -64,
     centerLat: -4,
     radiusMul: 1.65,
@@ -29,9 +29,12 @@ const REGION_FOCUS = {
   },
   zomia: {
     id: "zomia",
-    label: "赞米亚",
+    label: "赞米亚高地",
     centerLon: 99,
     centerLat: 24,
+    /** Pill anchor (腾冲); focus camera still uses centerLon/centerLat. */
+    labelLon: 98.49,
+    labelLat: 25.02,
     radiusMul: 1.75,
     contains(lon, lat) {
       return lat >= 7 && lat <= 36 && lon >= 89 && lon <= 106;
@@ -41,7 +44,6 @@ const REGION_FOCUS = {
       "ethnography-60",
       "ethnography-61",
       "ethnography-62",
-      "ethnography-63",
       "ethnography-64",
     ]),
   },
@@ -59,9 +61,32 @@ const REGION_FOCUS = {
       "ethnography-21",
       "ethnography-65",
       "ethnography-67",
+      "ethnography-68",
       "ethnography-69",
       "ethnography-70",
       "ethnography-71",
+    ]),
+  },
+  crescent: {
+    id: "crescent",
+    label: "新月地带",
+    centerLon: 37.5,
+    centerLat: 32.2,
+    /** Pill anchor (约旦内陆); focus camera still uses centerLon/centerLat. */
+    labelLon: 36.5,
+    labelLat: 31.2,
+    radiusMul: 1.9,
+    contains(lon, lat) {
+      return lat >= 28 && lat <= 35.2 && lon >= 29 && lon <= 45.5;
+    },
+    bookIds: new Set([
+      "ethnography-24",
+      "ethnography-73",
+      "ethnography-88",
+      "ethnography-93",
+      "ethnography-101",
+      "ethnography-103",
+      "ethnography-111",
     ]),
   },
 };
@@ -77,7 +102,6 @@ const COVER_SLUG_BY_BOOK_ID = {
   "ethnography-60": "the-paper-road",
   "ethnography-61": "songs-for-dead-parents",
   "ethnography-62": "passage-to-manhood",
-  "ethnography-63": "being-and-becoming-kachin",
   "ethnography-64": "mien-relations",
   "ethnography-13": "in-the-shadow-of-the-palms",
   "ethnography-21": "becoming-sinners",
@@ -87,6 +111,13 @@ const COVER_SLUG_BY_BOOK_ID = {
   "ethnography-69": "leviathans-at-the-gold-mine",
   "ethnography-70": "the-gender-of-the-gift",
   "ethnography-71": "cheap-meat",
+  "ethnography-24": "politics-of-piety",
+  "ethnography-73": "dreams-that-matter",
+  "ethnography-88": "creative-reckonings",
+  "ethnography-93": "an-enchanted-modern",
+  "ethnography-101": "facts-on-the-ground",
+  "ethnography-103": "ungovernable-life",
+  "ethnography-111": "waste-siege",
 };
 
 const state = {
@@ -129,6 +160,11 @@ const state = {
   cardSuppressionBlend: 0,
   coverSplitBlend: 0,
   activeGlobePointerId: null,
+  searchFocused: false,
+  searchQuery: "",
+  keywordFilterBlend: 0,
+  keywordMatchReveal: 0,
+  keywordRevealKey: "",
 };
 let landRings = [];
 let landReady = false;
@@ -151,6 +187,63 @@ const CITY_PIN_GROUPS = [
     lat: 39.9042,
     lon: 116.4074,
     bounds: { minLat: 39.75, maxLat: 40.05, minLon: 116.2, maxLon: 116.6 },
+  },
+  // Île-de-France: center Paris + eastern banlieues field sites map to one globe-scale pin
+  // so overlapping hit targets do not hide books (e.g. Fassin vs. Silverstein).
+  {
+    key: "city:paris-metro",
+    lat: 48.885,
+    lon: 2.418,
+    bounds: { minLat: 48.8, maxLat: 49.02, minLon: 2.28, maxLon: 2.52 },
+  },
+  // Greater Bay: Shenzhen + Hong Kong → one pin.
+  {
+    key: "megacity:hongkong-shenzhen",
+    lat: 22.42,
+    lon: 114.12,
+    bounds: { minLat: 22.14, maxLat: 22.66, minLon: 113.91, maxLon: 114.44 },
+  },
+  // Seoul + Dongducheon camptowns and nearby.
+  {
+    key: "region:seoul-metro",
+    lat: 37.5665,
+    lon: 126.978,
+    bounds: { minLat: 37.45, maxLat: 38.05, minLon: 126.82, maxLon: 127.18 },
+  },
+  // Jerusalem area + West Bank reads as one dot at globe scale.
+  {
+    key: "region:israel-palestine",
+    lat: 31.7683,
+    lon: 35.2137,
+    bounds: { minLat: 31.2, maxLat: 32.7, minLon: 34.2, maxLon: 35.75 },
+  },
+  // Beirut + Damascus (and Beirut site of Iraq/Lebanon multisited work).
+  {
+    key: "region:levant",
+    lat: 33.68,
+    lon: 35.9,
+    bounds: { minLat: 33.22, maxLat: 34.15, minLon: 35.15, maxLon: 36.52 },
+  },
+  // Lagos / Ibadan / Benin City corridor.
+  {
+    key: "region:nigeria-major",
+    lat: 6.43,
+    lon: 4.5,
+    bounds: { minLat: 6.08, maxLat: 6.72, minLon: 3.18, maxLon: 5.82 },
+  },
+  // Bo / Northern Province / wartime SL–Liberia pin used on the globe.
+  {
+    key: "region:sierra-leone",
+    lat: 8.4657,
+    lon: -13.2317,
+    bounds: { minLat: 7.65, maxLat: 9.35, minLon: -13.55, maxLon: -11.35 },
+  },
+  // Fergana valley + Kyrgyz–Tajik–Uzbek borderlands ethnography.
+  {
+    key: "region:uzbekistan-fergana",
+    lat: 40.3,
+    lon: 70.85,
+    bounds: { minLat: 39.55, maxLat: 41.25, minLon: 69.35, maxLon: 72.35 },
   },
 ];
 
@@ -238,14 +331,75 @@ function buildPinGroups(sourceBooks) {
   return Array.from(groups.values());
 }
 
+function buildBookSearchHaystack(book) {
+  return [
+    book.title,
+    book.summary,
+    book.author,
+    book.location,
+    book.countryOrRegion,
+    book.sourceField,
+    book.locationEn,
+    book.publisher,
+    book.year != null ? String(book.year) : "",
+  ]
+    .filter((s) => s != null && String(s).trim() !== "")
+    .join("\n")
+    .toLowerCase();
+}
+
+function normalizeKeywordQuery(raw) {
+  return String(raw || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+function bookMatchesSearchQuery(book, normalizedQuery) {
+  if (!normalizedQuery) return true;
+  const tokens = normalizedQuery.split(" ").filter(Boolean);
+  if (!tokens.length) return true;
+  const haystack = book.searchHaystack;
+  return tokens.every((t) => haystack.includes(t));
+}
+
+function groupMatchesSearchQuery(group, normalizedQuery) {
+  if (!normalizedQuery) return false;
+  return group.items.some(({ book }) => bookMatchesSearchQuery(book, normalizedQuery));
+}
+
+function groupItemsForSearchUI(group) {
+  const q = state.searchQuery;
+  if (!searchPinsActive() || q.length === 0) return group.items;
+  return group.items.filter(({ book }) => bookMatchesSearchQuery(book, q));
+}
+
+function searchPinsActive() {
+  return state.searchFocused || state.searchQuery.length > 0;
+}
+
 const books = (window.ETHNOGRAPHY_BOOKS || []).map((book) => ({
   ...book,
   vector: sphericalToVector(book.lon, book.lat),
   pinPoints: buildPinPoints(book),
+  searchHaystack: buildBookSearchHaystack(book),
 }));
+
+function regionHasSearchMatchedBook(region, normalizedQuery) {
+  if (!normalizedQuery || normalizedQuery.length === 0) return true;
+  for (const bookId of region.bookIds) {
+    const book = books.find((b) => b.id === bookId);
+    if (book && bookMatchesSearchQuery(book, normalizedQuery)) return true;
+  }
+  return false;
+}
+
 const pinGroups = buildPinGroups(books);
 let projectedPins = [];
+let projectedRegionLabelHitRects = [];
 let hoveredPinId = null;
+let hoveredRegionLabelId = null;
+let hoveredFocusBookId = null;
 const bookCard = document.querySelector("#bookCard");
 const bookCardClose = document.querySelector("#bookCardClose");
 const bookCardNav = document.querySelector("#bookCardNav");
@@ -294,7 +448,7 @@ function fallbackEnglishLocation(book) {
   const region = book.countryOrRegion || "";
   if (!region) return loc;
   if (!loc) return region;
-  return `${region} · ${loc}`;
+  return `${region}·${loc}`;
 }
 
 function formatSummaryForCard(summary) {
@@ -369,34 +523,74 @@ function applyLockedIntroOffsets() {
   applyIntroOffsets(offsets);
 }
 
-function nowrapRowsOverflow(panel) {
-  const margin = 44;
-  const inner = panel.clientWidth - margin;
-  if (!bookLocationEn || !bookMeta) return false;
+function bookCardContentOverflows() {
+  const locRow = bookCard.querySelector(".book-card-loc-row");
+  if (locRow && locRow.scrollWidth > locRow.clientWidth + 1) return true;
 
-  const enNeeds = inner > 0 ? bookLocationEn.scrollWidth > inner : false;
-  const metaNeeds = inner > 0 ? bookMeta.scrollWidth > inner : false;
-  return enNeeds || metaNeeds;
+  const check = (el) => {
+    if (!el || !String(el.textContent || "").trim()) return false;
+    if (el === bookTitleEn && el.classList.contains("is-empty")) return false;
+    return el.scrollWidth > el.clientWidth + 1;
+  };
+
+  return (
+    check(bookLocationEn) ||
+    check(bookTitleZh) ||
+    check(bookTitleEn) ||
+    check(bookMeta)
+  );
+}
+
+function nowrapRowsOverflow(panel) {
+  void panel;
+  return bookCardContentOverflows();
+}
+
+function applyBookCardOuterWidth(w, maxOuter) {
+  const ww = Math.min(maxOuter, Math.max(280, Math.round(w)));
+  bookCard.style.width = `${ww}px`;
+  bookCard.style.minWidth = `${ww}px`;
+  bookCard.style.maxWidth = `${maxOuter}px`;
 }
 
 function syncBookCardLayout() {
   if (bookCard.classList.contains("is-hidden")) return;
 
-  let fixedPx;
-  if (bookCard.classList.contains("book-card--focus-split")) {
-    fixedPx = Math.min(520, Math.max(300, Math.round(window.innerWidth * 0.54 - 40)));
-  } else {
-    fixedPx = Math.min(420, Math.max(300, window.innerWidth - 48));
-  }
-  bookCard.style.maxWidth = `${fixedPx}px`;
-  bookCard.style.minWidth = `${fixedPx}px`;
+  const hPadViewport = window.matchMedia("(max-width: 720px)").matches ? 18 : 24;
+  const focusSplit = bookCard.classList.contains("book-card--focus-split");
+
+  const maxOuter = focusSplit
+    ? Math.min(520, Math.max(300, Math.round(window.innerWidth * 0.54 - 40)))
+    : Math.min(760, window.innerWidth - hPadViewport * 2);
+
+  const baseMin = Math.min(420, maxOuter);
+
   bookCard.classList.remove("book-card--tight", "book-card--tighter");
-  bookCard.style.width = `${fixedPx}px`;
+
+  const tryWidth = (w) => {
+    applyBookCardOuterWidth(w, maxOuter);
+    void bookCard.offsetHeight;
+  };
 
   requestAnimationFrame(() => {
-    if (nowrapRowsOverflow(bookCard)) bookCard.classList.add("book-card--tight");
+    tryWidth(maxOuter);
+    if (!bookCardContentOverflows()) {
+      let lo = Math.min(baseMin, maxOuter);
+      let hi = maxOuter;
+      while (lo < hi) {
+        const mid = Math.floor((lo + hi) / 2);
+        tryWidth(mid);
+        if (bookCardContentOverflows()) lo = mid + 1;
+        else hi = mid;
+      }
+      tryWidth(lo);
+    }
+
     requestAnimationFrame(() => {
-      if (nowrapRowsOverflow(bookCard)) bookCard.classList.add("book-card--tighter");
+      if (bookCardContentOverflows()) bookCard.classList.add("book-card--tight");
+      requestAnimationFrame(() => {
+        if (bookCardContentOverflows()) bookCard.classList.add("book-card--tighter");
+      });
     });
   });
 }
@@ -418,20 +612,25 @@ function sphericalToVector(lonDeg, latDeg) {
 }
 
 const REGION_FOCUS_LABEL_TEXT = {
-  amazon: "亚马逊",
+  amazon: "亚马逊-安第斯",
 };
 
 const REGION_FOCUS_LABELS = Object.values(REGION_FOCUS).map((region) => ({
   id: region.id,
   text: REGION_FOCUS_LABEL_TEXT[region.id] || region.label,
-  vector: sphericalToVector(region.centerLon, region.centerLat),
+  vector: sphericalToVector(
+    region.labelLon ?? region.centerLon,
+    region.labelLat ?? region.centerLat
+  ),
 }));
 
 const REGION_FOCUS_LABEL_OFFSETS = {
   amazon: { x: 0, y: 0 },
-  // Nudge label up-left so the pill does not sit on the region-center pin.
-  zomia: { x: -42, y: -28 },
+  /* ~ one label pill height (see drawRoundedRect boxHeight≈30) upward from腾冲 anchor */
+  zomia: { x: 0, y: -30 },
   pacific: { x: 0, y: 0 },
+  /* Nudge inland (east on screen): keep pill-left clear of continental stroke vs Jordan anchor */
+  crescent: { x: 32, y: 0 },
 };
 
 function simplifyRing(ring, step = 2) {
@@ -614,47 +813,6 @@ function computeFocusRadiusMul(region, yaw, pitch) {
   return radius / state.layoutRadiusDefault;
 }
 
-function screenToLonLat(screenX, screenY) {
-  const drawRadius = state.radius * (0.94 + state.intro * 0.06);
-  const dx = (screenX - state.centerX) / drawRadius;
-  const dy = (state.centerY - screenY) / drawRadius;
-  const r2 = dx * dx + dy * dy;
-  if (r2 > 1.0001) return null;
-  const rz = Math.sqrt(Math.max(0, 1 - r2));
-
-  const ct = Math.cos(state.tilt);
-  const st = Math.sin(state.tilt);
-  const x2 = dx * ct + dy * st;
-  const y2 = -dx * st + dy * ct;
-  const z2 = rz;
-
-  const cp = Math.cos(state.pitch);
-  const sp = Math.sin(state.pitch);
-  const y1 = y2 * cp + z2 * sp;
-  const z1 = -y2 * sp + z2 * cp;
-  const x1 = x2;
-
-  const cy = Math.cos(state.yaw);
-  const sy = Math.sin(state.yaw);
-  const vx = x1 * cy - z1 * sy;
-  const vz = x1 * sy + z1 * cy;
-  const vy = y1;
-
-  const lat = Math.asin(Math.max(-1, Math.min(1, vy))) * (180 / Math.PI);
-  let lon = Math.atan2(vx, vz) * (180 / Math.PI);
-  if (lon > 180) lon -= 360;
-  if (lon < -180) lon += 360;
-  return { lon, lat };
-}
-
-function pickRegionAtLonLat(lon, lat) {
-  const order = ["zomia", "amazon", "pacific"];
-  for (const id of order) {
-    if (REGION_FOCUS[id].contains(lon, lat)) return REGION_FOCUS[id];
-  }
-  return null;
-}
-
 function applyLayoutFromFocusBlend() {
   const t = smoothstep(state.focusBlend);
   const cx0 = state.layoutCenterXDefault;
@@ -670,6 +828,8 @@ function applyLayoutFromFocusBlend() {
 function syncBodyFocusClass() {
   const on = state.focusBlend > 0.06 || state.focusMode;
   document.body.classList.toggle("is-region-focus", Boolean(on));
+  document.body.classList.toggle("is-focus-cover-notice-visible", state.focusBlendTarget > 0 || Boolean(state.focusMode));
+  document.body.classList.toggle("is-drag-hint-visible", state.focusBlendTarget === 0 && !state.focusMode);
   if (regionCoverLayer) {
     regionCoverLayer.classList.toggle("is-active", state.focusBlend > 0.35 && state.focusRegionId);
     regionCoverLayer.setAttribute("aria-hidden", state.focusBlend > 0.35 ? "false" : "true");
@@ -718,6 +878,7 @@ function exitRegionFocus() {
   resetGlobePointerState();
 
   closeBookCard();
+  hoveredFocusBookId = null;
   state.selectedBookId = null;
   state.selectedSiteIndex = 0;
   state.selectedGroupKey = null;
@@ -769,18 +930,32 @@ function groupMatchesAnyFocusRegion(group) {
   });
 }
 
+function focusBookMatchesGroup(group, bookId = hoveredFocusBookId) {
+  return Boolean(bookId && group.items.some((item) => item.book.id === bookId));
+}
+
+function regionCoverLayerBuildSignature() {
+  if (!state.focusRegionId) return null;
+  return `${state.focusRegionId}|${state.searchQuery}`;
+}
+
 function buildRegionCoverLayer() {
   if (!regionCoverLayer || !state.focusRegionId) return;
-  if (state.coverLayerBuiltFor === state.focusRegionId && regionCoverLayer.childElementCount > 0) return;
+  const sig = regionCoverLayerBuildSignature();
+  if (state.coverLayerBuiltFor === sig) return;
 
   regionCoverLayer.innerHTML = "";
-  state.coverLayerBuiltFor = state.focusRegionId;
+  state.coverLayerBuiltFor = sig;
   state.coverLayoutReady = false;
+  hoveredFocusBookId = null;
 
   for (const group of pinGroups) {
     if (!groupMatchesFocusRegion(group)) continue;
     for (const [itemIndex, item] of group.items.entries()) {
       if (!REGION_FOCUS[state.focusRegionId].bookIds.has(item.book.id)) continue;
+      if (searchPinsActive() && state.searchQuery.length > 0 && !bookMatchesSearchQuery(item.book, state.searchQuery)) {
+        continue;
+      }
       const slug = COVER_SLUG_BY_BOOK_ID[item.book.id];
 
       const btn = document.createElement("button");
@@ -811,15 +986,31 @@ function buildRegionCoverLayer() {
       }
       btn.appendChild(inner);
 
+      const setFocusHover = () => {
+        hoveredFocusBookId = item.book.id;
+      };
+      const clearFocusHover = () => {
+        if (hoveredFocusBookId === item.book.id) hoveredFocusBookId = null;
+      };
+      btn.addEventListener("pointerenter", setFocusHover);
+      btn.addEventListener("pointerleave", clearFocusHover);
+      btn.addEventListener("focus", setFocusHover);
+      btn.addEventListener("blur", clearFocusHover);
+
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const g = pinGroups.find((p) => p.key === group.key);
         if (!g) return;
+        const itemsUi = groupItemsForSearchUI(g);
+        const openIdx = itemsUi.findIndex(
+          (it) => it.book.id === item.book.id && it.siteIndex === item.siteIndex
+        );
+        const idx = openIdx >= 0 ? openIdx : 0;
         state.selectedGroupKey = g.key;
-        state.selectedBookIndex = itemIndex;
+        state.selectedBookIndex = idx;
         const x = Number(btn.dataset.coverX) || state.width * 0.5;
         const y = Number(btn.dataset.coverY) || state.height * 0.5;
-        openBookCard(g, x, y, state.selectedBookIndex);
+        openBookCard(g, x, y, idx);
         bookCard.dataset.anchorMode = "cover";
       });
 
@@ -891,11 +1082,14 @@ function syncRegionCoverPositions() {
     const offsetY = hasCachedOffset ? Number(btn.dataset.offsetY) : 0;
     // Pin + offset keeps the cover fixed relative to its site while the focus
     // camera eases; frozen layoutX/Y would let markers drift under the card.
-    const coverX = clamp(pin.x + offsetX, size.width / 2 + margin, state.width - size.width / 2 - margin);
-    const coverY = clamp(pin.y + offsetY, size.height / 2 + margin, state.height - size.height / 2 - margin);
+    const coverCenter = resolveCoverCenterAvoidingPins(pin.x + offsetX, pin.y + offsetY, size);
+    const coverX = coverCenter.x;
+    const coverY = coverCenter.y;
     if (state.coverLayoutReady && hasCachedOffset) {
       btn.dataset.layoutX = String(coverX);
       btn.dataset.layoutY = String(coverY);
+      btn.dataset.offsetX = String(coverX - pin.x);
+      btn.dataset.offsetY = String(coverY - pin.y);
     }
 
     const baseX = state.coverLayoutReady ? coverX : pin.x + (coverX - pin.x) * positionFade;
@@ -1002,10 +1196,11 @@ function solveNonOverlappingCoverLayout(entries) {
       pin: entry.pin,
     };
   });
+  const layoutContext = createCoverLayoutContext(items);
 
   if (items.length === 1) {
     const item = items[0];
-    const candidates = coverLayoutCandidates(item);
+    const candidates = coverLayoutCandidates(item, layoutContext);
     const free = candidates.find((candidate) => !rectOverlapsPinObstacles(candidate.rect, protectedPins));
     let cx;
     let cy;
@@ -1041,13 +1236,16 @@ function solveNonOverlappingCoverLayout(entries) {
       cx = c.x;
       cy = c.y;
     }
+    const safeCenter = resolveCoverCenterAvoidingPins(cx, cy, item.size, protectedPins);
+    cx = safeCenter.x;
+    cy = safeCenter.y;
     applyCoverLayoutPosition(item, cx, cy);
     refineCoverLayoutAgainstPinsAndOverlaps(visibleEntries);
     return;
   }
 
   for (const item of items) {
-    item.candidates = coverLayoutCandidates(item);
+    item.candidates = coverLayoutCandidates(item, layoutContext);
   }
 
   const searchOrder = items.slice().sort((a, b) => {
@@ -1059,10 +1257,18 @@ function solveNonOverlappingCoverLayout(entries) {
   const chosen = new Map();
   const maxNodes = 18000;
   let visited = 0;
+  let bestScore = Infinity;
+  let bestChosen = null;
 
-  function placeNext(depth) {
-    if (depth >= searchOrder.length) return true;
-    if (visited > maxNodes) return false;
+  function placeNext(depth, runningScore = 0) {
+    if (depth >= searchOrder.length) {
+      if (runningScore < bestScore) {
+        bestScore = runningScore;
+        bestChosen = new Map(chosen);
+      }
+      return;
+    }
+    if (visited > maxNodes || runningScore >= bestScore) return;
     visited += 1;
 
     const item = searchOrder[depth];
@@ -1071,14 +1277,20 @@ function solveNonOverlappingCoverLayout(entries) {
       if (placed.some((placedRect) => rectsOverlapWithGap(candidate.rect, placedRect, 12))) continue;
       placed.push(candidate.rect);
       chosen.set(item, candidate);
-      if (placeNext(depth + 1)) return true;
+      placeNext(depth + 1, runningScore + candidate.score);
       chosen.delete(item);
       placed.pop();
     }
-    return false;
   }
 
-  if (!placeNext(0)) {
+  placeNext(0);
+
+  if (bestChosen) {
+    chosen.clear();
+    for (const [item, candidate] of bestChosen) {
+      chosen.set(item, candidate);
+    }
+  } else {
     chosen.clear();
     const fallback = gridFallbackCoverLayout(items, protectedPins);
     for (const [item, candidate] of fallback) {
@@ -1089,7 +1301,8 @@ function solveNonOverlappingCoverLayout(entries) {
   for (const item of items) {
     const candidate = chosen.get(item);
     if (!candidate) continue;
-    applyCoverLayoutPosition(item, candidate.x, candidate.y);
+    const safeCenter = resolveCoverCenterAvoidingPins(candidate.x, candidate.y, item.size, protectedPins);
+    applyCoverLayoutPosition(item, safeCenter.x, safeCenter.y);
   }
 
   refineCoverLayoutAgainstPinsAndOverlaps(visibleEntries);
@@ -1101,8 +1314,8 @@ function coverLayoutPinObstacles() {
     .map((pin) => ({
       x: pin.x,
       y: pin.y,
-      // Include faint halo / stroke so the visible marker stays outside the cover rect.
-      radius: pin.radius + 22,
+      // Include the halo, leader-line dot, and a little reading room around the marker.
+      radius: pin.radius + 34,
     }));
 }
 
@@ -1136,7 +1349,67 @@ function fitCoverScalesToViewport(entries) {
   }
 }
 
-function coverLayoutCandidates(item) {
+function createCoverLayoutContext(items) {
+  const pins = items.map((item) => item.pin);
+  const xs = pins.map((pin) => pin.x);
+  const ys = pins.map((pin) => pin.y);
+  const avgWidth = items.reduce((sum, item) => sum + item.size.width, 0) / Math.max(1, items.length);
+  const avgHeight = items.reduce((sum, item) => sum + item.size.height, 0) / Math.max(1, items.length);
+  const centerX = xs.reduce((sum, x) => sum + x, 0) / Math.max(1, xs.length);
+  const centerY = ys.reduce((sum, y) => sum + y, 0) / Math.max(1, ys.length);
+  const spanX = Math.max(1, Math.max(...xs) - Math.min(...xs));
+  const spanY = Math.max(1, Math.max(...ys) - Math.min(...ys));
+
+  return {
+    count: items.length,
+    centerX,
+    centerY,
+    spanX,
+    spanY,
+    avgSize: Math.max(avgWidth, avgHeight),
+  };
+}
+
+function coverLayoutClusterCandidates(item, layoutContext) {
+  const candidates = [];
+  const count = Math.max(1, layoutContext.count);
+  const slot = item.index % count;
+  const angleStep = (Math.PI * 2) / count;
+  const slotAngle = -Math.PI / 2 + angleStep * slot;
+  const pinAngle = Math.atan2(item.pin.y - layoutContext.centerY, item.pin.x - layoutContext.centerX);
+  const clusterRadius = Math.max(
+    layoutContext.avgSize * 0.72 + 28,
+    Math.max(layoutContext.spanX, layoutContext.spanY) * 0.52 + layoutContext.avgSize * 0.48
+  );
+  const distances = [clusterRadius, clusterRadius + 54, clusterRadius + 112];
+  const angles = [
+    slotAngle,
+    slotAngle + angleStep * 0.45,
+    slotAngle - angleStep * 0.45,
+    Number.isFinite(pinAngle) ? pinAngle : slotAngle,
+  ];
+
+  for (const distance of distances) {
+    for (const angle of angles) {
+      candidates.push({
+        x: layoutContext.centerX + Math.cos(angle) * distance,
+        y: layoutContext.centerY + Math.sin(angle) * distance,
+      });
+    }
+  }
+
+  return candidates;
+}
+
+function coverLayoutCandidateScore(kind, x, y, pin, shift, pinOverlap, jitter) {
+  const distance = Math.hypot(x - pin.x, y - pin.y);
+  const distanceWeight = kind === "cluster" ? 0.78 : 1;
+  const kindPenalty = kind === "grid" ? 82 : kind === "ring" ? 18 : kind === "cluster" ? -30 : 0;
+  const viewportBalance = Math.abs(y - state.height * 0.48) * 0.08;
+  return distance * distanceWeight + shift * 760 + pinOverlap * 420 + kindPenalty + viewportBalance + jitter;
+}
+
+function coverLayoutCandidates(item, layoutContext) {
   const { entry, pin, size } = item;
   const btn = entry.btn;
   const protectedPins = coverLayoutPinObstacles();
@@ -1147,25 +1420,27 @@ function coverLayoutCandidates(item) {
     if (candidates.some((candidate) => candidate.key === key)) return;
 
     const rect = coverRectAt(x, y, size);
-    const distance = Math.hypot(x - pin.x, y - pin.y);
     const pinOverlap = pinObstacleOverlapAmount(rect, protectedPins);
     const jitter =
       (Number(btn.dataset.slotJitterX || 0) * (x - state.centerX) +
         Number(btn.dataset.slotJitterY || 0) * (y - state.centerY)) *
       0.002;
-    const kindPenalty = kind === "grid" ? 70 : kind === "ring" ? 22 : 0;
 
     candidates.push({
       key,
       x,
       y,
       rect,
-      score: distance + shift * 760 + pinOverlap * 420 + kindPenalty + jitter,
+      score: coverLayoutCandidateScore(kind, x, y, pin, shift, pinOverlap, jitter),
     });
   };
 
   for (const offset of coverOffsetCandidates(btn, pin, size)) {
     addCandidate(pin.x + offset.x, pin.y + offset.y, "near");
+  }
+
+  for (const candidate of coverLayoutClusterCandidates(item, layoutContext)) {
+    addCandidate(candidate.x, candidate.y, "cluster");
   }
 
   const baseDistance = Math.max(size.width, size.height) * 0.58 + pin.radius + 18;
@@ -1288,6 +1563,29 @@ function clampCoverCenterWithShift(x, y, size) {
   };
 }
 
+function resolveCoverCenterAvoidingPins(x, y, size, pinObstacles = coverLayoutPinObstacles()) {
+  const margin = 18;
+  const center = clampCoverCenter(x, y, size);
+
+  for (let step = 0; step < 18; step += 1) {
+    let moved = false;
+    for (const ob of pinObstacles) {
+      const rect = coverRectAt(center.x, center.y, size);
+      const push = coverPinRepulsion(rect, { x: ob.x, y: ob.y }, ob.radius);
+      if (!push) continue;
+      center.x += push.x;
+      center.y += push.y;
+      moved = true;
+    }
+
+    center.x = clamp(center.x, size.width / 2 + margin, state.width - size.width / 2 - margin);
+    center.y = clamp(center.y, size.height / 2 + margin, state.height - size.height / 2 - margin);
+    if (!moved || !rectOverlapsPinObstacles(coverRectAt(center.x, center.y, size), pinObstacles)) break;
+  }
+
+  return center;
+}
+
 function rectsOverlapWithGap(a, b, gap) {
   return a.left < b.right + gap && a.right > b.left - gap && a.top < b.bottom + gap && a.bottom > b.top - gap;
 }
@@ -1312,7 +1610,6 @@ function applyCoverLayoutPosition(item, x, y) {
 // separation with pin repulsion until stable, then sync layout datasets.
 function refineCoverLayoutAgainstPinsAndOverlaps(entries) {
   const obstacles = coverLayoutPinObstacles();
-  const margin = 18;
   const pad = 10;
   const items = entries
     .filter((e) => e.pin && e.pin.z > 0.04)
@@ -1368,8 +1665,9 @@ function refineCoverLayoutAgainstPinsAndOverlaps(entries) {
         moved += 1;
       }
 
-      item.cx = clamp(item.cx, item.size.width / 2 + margin, state.width - item.size.width / 2 - margin);
-      item.cy = clamp(item.cy, item.size.height / 2 + margin, state.height - item.size.height / 2 - margin);
+      const safeCenter = resolveCoverCenterAvoidingPins(item.cx, item.cy, item.size, obstacles);
+      item.cx = safeCenter.x;
+      item.cy = safeCenter.y;
     }
 
     if (moved === 0) break;
@@ -1606,9 +1904,6 @@ function drawRegionLeaderLines() {
 
   ctx.save();
   ctx.lineWidth = 1.25;
-  ctx.strokeStyle = `rgba(214, 67, 47, ${0.42 * fade})`;
-  ctx.fillStyle = `rgba(214, 67, 47, ${0.82 * fade})`;
-  ctx.shadowColor = `rgba(244, 239, 229, ${0.72 * fade})`;
   ctx.shadowBlur = 4;
 
   const buttons = Array.from(regionCoverLayer.querySelectorAll(".region-cover-hit"));
@@ -1619,6 +1914,17 @@ function drawRegionLeaderLines() {
     const coverX = Number(btn.dataset.coverX);
     const coverY = Number(btn.dataset.coverY);
     if (![pinX, pinY, coverX, coverY].every(Number.isFinite)) continue;
+
+    const isHighlighted = hoveredFocusBookId && btn.dataset.bookId === hoveredFocusBookId;
+    ctx.strokeStyle = isHighlighted
+      ? `rgba(214, 67, 47, ${0.42 * fade})`
+      : `rgba(86, 80, 75, ${0.24 * fade})`;
+    ctx.fillStyle = isHighlighted
+      ? `rgba(214, 67, 47, ${0.82 * fade})`
+      : `rgba(86, 80, 75, ${0.46 * fade})`;
+    ctx.shadowColor = isHighlighted
+      ? `rgba(244, 239, 229, ${0.72 * fade})`
+      : `rgba(244, 239, 229, ${0.38 * fade})`;
 
     const dx = coverX - pinX;
     const dy = coverY - pinY;
@@ -1712,7 +2018,7 @@ function drawGlobe(time) {
   state.yaw += (state.targetYaw - state.yaw) * 0.12;
   state.pitch += (state.targetPitch - state.pitch) * 0.12;
 
-  if (state.focusBlend > 0.32 && state.focusMode && regionCoverLayer && regionCoverLayer.childElementCount === 0) {
+  if (state.focusBlend > 0.32 && state.focusMode && regionCoverLayer) {
     buildRegionCoverLayer();
   }
 
@@ -1735,6 +2041,43 @@ function drawGlobe(time) {
   state.coverSplitBlend += (splitTarget - state.coverSplitBlend) * splitEase;
   if (Math.abs(splitTarget - state.coverSplitBlend) < 0.004) {
     state.coverSplitBlend = splitTarget;
+  }
+
+  const searchActive = state.searchFocused || state.searchQuery.length > 0;
+  const kwTarget = searchActive ? 1 : 0;
+  const kwEase = prefersReducedMotion ? 1 : 0.088;
+  state.keywordFilterBlend += (kwTarget - state.keywordFilterBlend) * kwEase;
+  if (Math.abs(kwTarget - state.keywordFilterBlend) < 0.002) {
+    state.keywordFilterBlend = kwTarget;
+  }
+
+  const qNorm = state.searchQuery;
+  let keywordAnyMatch = false;
+  if (qNorm.length > 0) {
+    for (let gi = 0; gi < pinGroups.length; gi += 1) {
+      if (groupMatchesSearchQuery(pinGroups[gi], qNorm)) {
+        keywordAnyMatch = true;
+        break;
+      }
+    }
+  }
+
+  if (qNorm.length === 0) {
+    state.keywordMatchReveal = 0;
+    state.keywordRevealKey = "";
+  } else if (state.keywordRevealKey !== qNorm) {
+    state.keywordRevealKey = qNorm;
+    state.keywordMatchReveal = 0;
+  }
+
+  const revealEase = prefersReducedMotion ? 1 : 0.09;
+  if (qNorm.length > 0 && keywordAnyMatch) {
+    state.keywordMatchReveal += (1 - state.keywordMatchReveal) * revealEase;
+    if (1 - state.keywordMatchReveal < 0.003) {
+      state.keywordMatchReveal = 1;
+    }
+  } else if (qNorm.length > 0 && !keywordAnyMatch) {
+    state.keywordMatchReveal = 1;
   }
 
   ctx.clearRect(0, 0, state.width, state.height);
@@ -1815,6 +2158,11 @@ function drawPins(time) {
   const filterRegion = state.focusMode && state.focusBlend > 0.08;
   const hideFocusRegionPins = !state.focusMode;
 
+  const kwActive = searchPinsActive();
+  const q = state.searchQuery;
+  const b = state.keywordFilterBlend;
+  const rev = state.keywordMatchReveal;
+
   for (const group of pinGroups) {
     if (filterRegion && !groupMatchesFocusRegion(group)) continue;
     if (hideFocusRegionPins && groupMatchesAnyFocusRegion(group)) continue;
@@ -1823,35 +2171,65 @@ function drawPins(time) {
     if (point.z <= 0.04) continue;
 
     const depth = Math.max(0, Math.min(1, point.z));
-    const hasMultipleBooks = group.items.length > 1;
+    const itemsUi = groupItemsForSearchUI(group);
+    const hasMultipleBooks = itemsUi.length > 1;
     const pinRadius = 3.8 + depth * 2.6 + (hasMultipleBooks ? 1.3 : 0);
     const isSelected = state.selectedGroupKey === group.key;
     const isHovered = hoveredPinId === group.key;
+    const focusDimming = state.focusMode && state.focusBlend > 0.34;
+    const focusHighlighted = focusDimming && focusBookMatchesGroup(group);
+
+    let kwAlpha = 1;
+    let kwScale = 1;
+    if (kwActive) {
+      if (q.length === 0) {
+        kwAlpha = 1 - b;
+      } else if (groupMatchesSearchQuery(group, q)) {
+        kwAlpha = b * rev;
+        kwScale = 0.56 + 0.44 * (1 - (1 - rev) ** 2.35);
+      } else {
+        kwAlpha = 1 - b;
+      }
+    }
+
+    if (kwAlpha < 0.012) continue;
+
+    const rDraw = pinRadius * kwScale;
+    const glowR = (pinRadius + 4 + pulse * 2.5) * kwScale;
+    const ringR = (pinRadius + 3.2) * kwScale;
+    const hitR = (pinRadius + 8) * Math.max(kwScale, 0.85);
 
     ctx.save();
-    ctx.globalAlpha = (0.5 + depth * 0.5) * suppressAlpha;
+    ctx.globalAlpha = (0.5 + depth * 0.5) * suppressAlpha * kwAlpha;
     ctx.beginPath();
-    ctx.fillStyle = "rgba(214, 67, 47, 0.18)";
-    ctx.arc(point.x, point.y, pinRadius + 4 + pulse * 2.5, 0, Math.PI * 2);
+    ctx.fillStyle =
+      focusDimming && !focusHighlighted ? "rgba(96, 90, 84, 0.13)" : "rgba(214, 67, 47, 0.18)";
+    ctx.arc(point.x, point.y, glowR, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
     ctx.save();
-    ctx.globalAlpha = suppressAlpha;
+    ctx.globalAlpha = suppressAlpha * kwAlpha;
 
     if (hasMultipleBooks) {
       ctx.beginPath();
-      ctx.strokeStyle = "rgba(214, 67, 47, 0.42)";
+      ctx.strokeStyle =
+        focusDimming && !focusHighlighted ? "rgba(86, 80, 75, 0.34)" : "rgba(214, 67, 47, 0.42)";
       ctx.lineWidth = 1.2;
-      ctx.arc(point.x, point.y, pinRadius + 3.2, 0, Math.PI * 2);
+      ctx.arc(point.x, point.y, ringR, 0, Math.PI * 2);
       ctx.stroke();
     }
 
     ctx.beginPath();
-    ctx.fillStyle = isSelected || isHovered ? "rgba(214, 67, 47, 0.96)" : "rgba(196, 58, 42, 0.9)";
-    ctx.strokeStyle = "rgba(250, 245, 236, 0.9)";
+    ctx.fillStyle =
+      focusDimming && !focusHighlighted
+        ? "rgba(86, 80, 75, 0.62)"
+        : isSelected || isHovered || focusHighlighted
+          ? "rgba(214, 67, 47, 0.96)"
+          : "rgba(196, 58, 42, 0.9)";
+    ctx.strokeStyle = focusDimming && !focusHighlighted ? "rgba(244, 239, 229, 0.58)" : "rgba(250, 245, 236, 0.9)";
     ctx.lineWidth = 1.2;
-    ctx.arc(point.x, point.y, pinRadius, 0, Math.PI * 2);
+    ctx.arc(point.x, point.y, rDraw, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
@@ -1863,17 +2241,27 @@ function drawPins(time) {
       x: point.x,
       y: point.y,
       z: point.z,
-      radius: pinRadius + 8,
+      radius: hitR,
     });
   }
 }
 
 function drawRegionFocusLabels() {
+  projectedRegionLabelHitRects = [];
   if (state.focusBlend > 0.92) return;
 
   const radius = state.radius * (0.94 + state.intro * 0.06);
   const focusFade = 1 - smoothstep(Math.min(1, state.focusBlend / 0.46));
-  const baseAlpha = state.intro * focusFade;
+  const q = state.searchQuery;
+  const globalKeywordEntry = !state.focusMode && q.length > 0;
+
+  let kwFade = searchPinsActive() ? 1 - state.keywordFilterBlend : 1;
+  if (globalKeywordEntry) {
+    kwFade = 1;
+  }
+
+  const searchLabelReveal = globalKeywordEntry ? state.keywordMatchReveal : 1;
+  const baseAlpha = state.intro * focusFade * kwFade * searchLabelReveal;
   if (baseAlpha <= 0.01) return;
 
   ctx.save();
@@ -1882,6 +2270,9 @@ function drawRegionFocusLabels() {
   ctx.font = `700 ${state.width < 760 ? 14 : 16}px "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif`;
 
   for (const label of REGION_FOCUS_LABELS) {
+    const region = REGION_FOCUS[label.id];
+    if (globalKeywordEntry && !regionHasSearchMatchedBook(region, q)) continue;
+
     const point = projectVector(label.vector, radius);
     if (point.z <= -0.12) continue;
 
@@ -1896,15 +2287,19 @@ function drawRegionFocusLabels() {
     const boxRadius = boxHeight / 2;
     const labelPosition = resolveRegionLabelPosition(label.id, point, boxWidth, boxHeight, depth);
 
+    const hitLeft = labelPosition.x - boxWidth / 2;
+    const hitTop = labelPosition.y - boxHeight / 2;
+    projectedRegionLabelHitRects.push({
+      id: label.id,
+      left: hitLeft,
+      top: hitTop,
+      right: hitLeft + boxWidth,
+      bottom: hitTop + boxHeight,
+    });
+
     ctx.globalAlpha = alpha;
     ctx.beginPath();
-    drawRoundedRectPath(
-      labelPosition.x - boxWidth / 2,
-      labelPosition.y - boxHeight / 2,
-      boxWidth,
-      boxHeight,
-      boxRadius
-    );
+    drawRoundedRectPath(hitLeft, hitTop, boxWidth, boxHeight, boxRadius);
     ctx.fillStyle = "rgba(244, 239, 229, 0.82)";
     ctx.fill();
     ctx.strokeStyle = "rgba(214, 67, 47, 0.34)";
@@ -1916,6 +2311,14 @@ function drawRegionFocusLabels() {
   }
 
   ctx.restore();
+}
+
+function getHitRegionLabel(screenX, screenY) {
+  for (let i = projectedRegionLabelHitRects.length - 1; i >= 0; i -= 1) {
+    const r = projectedRegionLabelHitRects[i];
+    if (screenX >= r.left && screenX <= r.right && screenY >= r.top && screenY <= r.bottom) return r.id;
+  }
+  return null;
 }
 
 function resolveRegionLabelPosition(labelId, point, width, height, depth) {
@@ -2074,26 +2477,24 @@ function tryFinalizeGlobePointer(event) {
   }
 
   if (dragDistance < 8) {
+    if (!state.focusMode) {
+      const labelId = getHitRegionLabel(pointerX, pointerY);
+      if (labelId) {
+        beginRegionFocus(labelId);
+        return;
+      }
+    }
+
     const hit = getHitPin(pointerX, pointerY);
     if (hit) {
       state.selectedGroupKey = hit.groupKey;
       state.selectedBookIndex = 0;
-      const selected = hit.group.items[0];
+      const itemsUi = groupItemsForSearchUI(hit.group);
+      const selected = itemsUi[0] || hit.group.items[0];
       state.selectedBookId = selected.book.id;
       state.selectedSiteIndex = selected.siteIndex;
       openBookCard(hit.group, hit.x, hit.y, 0);
       return;
-    }
-
-    if (!state.focusMode) {
-      const ll = screenToLonLat(pointerX, pointerY);
-      if (ll) {
-        const region = pickRegionAtLonLat(ll.lon, ll.lat);
-        if (region) {
-          beginRegionFocus(region.id);
-          return;
-        }
-      }
     }
 
     closeBookCard();
@@ -2163,26 +2564,30 @@ function getHitPin(x, y) {
 function updateHoverPin(x, y) {
   const pin = getHitPin(x, y);
   hoveredPinId = pin ? pin.groupKey : null;
-  stage.style.cursor = pin ? "pointer" : "grab";
+  hoveredRegionLabelId = !state.focusMode ? getHitRegionLabel(x, y) : null;
+  stage.style.cursor = pin || hoveredRegionLabelId ? "pointer" : "grab";
 }
 
 function setCardBook(group, bookIndex) {
-  const safeIndex = ((bookIndex % group.items.length) + group.items.length) % group.items.length;
-  const item = group.items[safeIndex];
+  const items = groupItemsForSearchUI(group);
+  if (items.length === 0) return null;
+
+  const safeIndex = ((bookIndex % items.length) + items.length) % items.length;
+  const item = items[safeIndex];
   const book = item.book;
 
   bookLocationZh.textContent =
-    book.sourceField || [book.countryOrRegion, book.location].filter(Boolean).join(" - ");
+    book.sourceField || [book.countryOrRegion, book.location].filter(Boolean).join("·");
   bookLocationEn.textContent = book.locationEn || fallbackEnglishLocation(book);
 
   const { zh, en } = splitTranslatedTitle(book.title);
   bookTitleZh.textContent = zh;
   bookTitleEn.textContent = en;
   bookTitleEn.classList.toggle("is-empty", !en);
-  bookMeta.textContent = `${book.author} · ${book.year} · ${resolvePublisherLabel(book.publisher)}`;
+  bookMeta.textContent = `${book.author} · ${book.year}\n${resolvePublisherLabel(book.publisher)}`;
   bookSummary.textContent = formatSummaryForCard(book.summary);
-  bookCardNav.classList.toggle("is-hidden", group.items.length <= 1);
-  bookCardCount.textContent = `${safeIndex + 1} / ${group.items.length}`;
+  bookCardNav.classList.toggle("is-hidden", state.focusMode || items.length <= 1);
+  bookCardCount.textContent = `${safeIndex + 1} / ${items.length}`;
   state.selectedBookId = book.id;
   state.selectedSiteIndex = item.siteIndex;
   state.selectedBookIndex = safeIndex;
@@ -2215,7 +2620,7 @@ function positionFocusSplitBookCard() {
 }
 
 function openBookCard(group, x, y, bookIndex = 0) {
-  setCardBook(group, bookIndex);
+  if (!setCardBook(group, bookIndex)) return;
   bookCard.dataset.groupKey = group.key;
   delete bookCard.dataset.anchorMode;
 
@@ -2244,6 +2649,7 @@ function openBookCard(group, x, y, bookIndex = 0) {
 
 function closeBookCard() {
   const wasFocusSplit = bookCard.classList.contains("book-card--focus-split");
+  if (state.focusMode) hoveredFocusBookId = null;
   bookCard.classList.add("is-hidden");
   if (wasFocusSplit) {
     window.setTimeout(() => {
@@ -2285,10 +2691,12 @@ function clampBookCardToViewport() {
 
 function switchCardBook(delta) {
   if (bookCard.classList.contains("is-hidden")) return;
+  if (state.focusMode) return;
 
   const groupKey = bookCard.dataset.groupKey;
   const group = pinGroups.find((item) => item.key === groupKey);
-  if (!group || group.items.length <= 1) return;
+  const items = group ? groupItemsForSearchUI(group) : [];
+  if (!group || items.length <= 1) return;
 
   const currentIndex = Number(bookCard.dataset.bookIndex || 0);
   setCardBook(group, currentIndex + delta);
@@ -2366,6 +2774,27 @@ if (globeFocusBack) {
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && state.focusMode) exitRegionFocus();
 });
+
+const keywordSearch = document.querySelector("#keywordSearch");
+const keywordSearchGlass = document.querySelector("#keywordSearchGlass");
+if (keywordSearch) {
+  const syncSearchQuery = () => {
+    state.searchQuery = normalizeKeywordQuery(keywordSearch.value);
+    if (keywordSearchGlass) {
+      keywordSearchGlass.classList.toggle("has-value", keywordSearch.value.trim() !== "");
+    }
+  };
+  keywordSearch.addEventListener("focus", () => {
+    state.searchFocused = true;
+    syncSearchQuery();
+  });
+  keywordSearch.addEventListener("blur", () => {
+    state.searchFocused = false;
+    syncSearchQuery();
+  });
+  keywordSearch.addEventListener("input", syncSearchQuery);
+  syncSearchQuery();
+}
 
 resize();
 applyLockedTypeScales();

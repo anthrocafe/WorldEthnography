@@ -13,36 +13,50 @@ BOOKS_PATH = ROOT / "books-data.js"
 PREFIX = "window.ETHNOGRAPHY_BOOKS = "
 
 
+def normalize_title(raw_title):
+    return re.sub(r"\s+", " ", str(raw_title or "").replace("（", "(").replace("）", ")").strip())
+
+
 def parse_cn_en_title(raw_title):
-    text = str(raw_title or "").strip()
+    text = normalize_title(raw_title)
     match = re.match(r"^\s*《\s*(.*?)\s*》\s*\((.*?)\)\s*$", text)
     if not match:
         return None, None
     return match.group(1).strip(), match.group(2).strip()
 
 
+def row_key(title, author, year):
+    return (normalize_title(title), str(author or "").strip(), int(year))
+
+
 def load_sheet_rows():
     wb = openpyxl.load_workbook(XLSX_PATH, data_only=True)
-    ws = wb[wb.sheetnames[0]]
     rows = []
     cn_by_en = {}
+    seen = set()
 
-    for row_idx in range(2, ws.max_row + 1):
-        title = ws.cell(row_idx, 1).value
-        author = ws.cell(row_idx, 2).value
-        year = ws.cell(row_idx, 3).value
+    for sheet_name in wb.sheetnames:
+        ws = wb[sheet_name]
+        for row_idx in range(2, ws.max_row + 1):
+            title = ws.cell(row_idx, 1).value
+            author = ws.cell(row_idx, 2).value
+            year = ws.cell(row_idx, 3).value
 
-        if not (title and author and year):
-            continue
+            if not (title and author and year):
+                continue
 
-        title_str = str(title).strip()
-        author_str = str(author).strip()
-        year_int = int(year)
-        rows.append((title_str, author_str, year_int))
+            cn, en = parse_cn_en_title(title)
+            title_str = f"《{cn}》({en})" if cn and en else normalize_title(title)
+            author_str = str(author).strip()
+            year_int = int(year)
+            key = row_key(title_str, author_str, year_int)
+            if key in seen:
+                continue
+            seen.add(key)
+            rows.append((title_str, author_str, year_int))
 
-        cn, en = parse_cn_en_title(title_str)
-        if cn and en:
-            cn_by_en[en] = cn
+            if cn and en:
+                cn_by_en[en] = cn
 
     return rows, cn_by_en
 
@@ -72,11 +86,7 @@ def main():
     used_counter = Counter()
 
     for book in books:
-        key = (
-            str(book.get("title", "")).strip(),
-            str(book.get("author", "")).strip(),
-            int(book.get("year", 0)),
-        )
+        key = row_key(book.get("title", ""), book.get("author", ""), book.get("year", 0))
         if used_counter[key] < keep_counter[key]:
             kept.append(book)
             used_counter[key] += 1
@@ -101,7 +111,7 @@ def main():
     save_books(kept)
 
     final_rows = [
-        (str(b.get("title", "")).strip(), str(b.get("author", "")).strip(), int(b.get("year", 0)))
+        row_key(b.get("title", ""), b.get("author", ""), b.get("year", 0))
         for b in kept
     ]
     is_exact = Counter(final_rows) == keep_counter

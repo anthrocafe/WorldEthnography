@@ -17,6 +17,8 @@
   --scale-card-title-en: 1;
   --scale-card-meta: 1;
   --scale-card-summary: 1;
+  /* Focus-split card only: prefer height ≥ width × ratio (vertical panel). */
+  --book-card-portrait-min-ratio: 1.06;
   --intro-eyebrow-x: -8px;
   --intro-title-x: -8px;
   --intro-lede-x: -8px;
@@ -70,12 +72,17 @@ body::before {
   max-width: min(575px, 42.5vw);
   pointer-events: auto;
   visibility: visible;
-  animation: copy-rise 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   transition:
     opacity 860ms cubic-bezier(0.22, 1, 0.36, 1) 90ms,
     filter 860ms cubic-bezier(0.22, 1, 0.36, 1) 90ms,
     transform 860ms cubic-bezier(0.22, 1, 0.36, 1) 90ms,
     visibility 0s linear 0s;
+}
+
+.intro-copy-rise {
+  display: block;
+  width: 100%;
+  animation: copy-rise 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 body.is-region-focus .intro {
@@ -157,6 +164,184 @@ body.is-region-focus .lede {
   transition-delay: 100ms;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.intro-keyword {
+  margin: clamp(16px, 1.8vw, 24px) 0 0;
+  width: fit-content;
+  max-width: 100%;
+  transform: translate(var(--intro-title-x, 0px), 0);
+  /* Match `h1` motion so horizontal offset easing stays aligned with the main title. */
+  transition:
+    opacity 720ms cubic-bezier(0.22, 1, 0.36, 1) 40ms,
+    filter 720ms cubic-bezier(0.22, 1, 0.36, 1) 40ms,
+    transform 720ms cubic-bezier(0.22, 1, 0.36, 1) 40ms;
+}
+
+.intro-keyword-glass {
+  --keyword-glass-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 100%;
+  min-height: 52px;
+  margin: 0;
+  padding: 12px clamp(18px, 2.4vw, 26px);
+  cursor: text;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  background:
+    linear-gradient(135deg, rgba(255, 252, 246, 0.52) 0%, rgba(236, 228, 214, 0.38) 48%, rgba(255, 253, 248, 0.44) 100%);
+  -webkit-backdrop-filter: blur(18px) saturate(1.22);
+  backdrop-filter: blur(18px) saturate(1.22);
+  box-shadow:
+    0 10px 36px rgba(30, 24, 20, 0.09),
+    0 1px 0 rgba(255, 255, 255, 0.78) inset,
+    0 -1px 0 rgba(51, 43, 39, 0.05) inset;
+  transition:
+    border-color 0.42s var(--keyword-glass-ease),
+    box-shadow 0.48s var(--keyword-glass-ease),
+    transform 0.55s var(--keyword-glass-ease),
+    background 0.45s var(--keyword-glass-ease);
+}
+
+.intro-keyword-field {
+  position: relative;
+  display: grid;
+  grid-template-columns: max-content;
+  align-items: center;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.intro-keyword-width-measure {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  white-space: nowrap;
+  font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: clamp(13px, 0.92vw, 15px);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.35;
+}
+
+.intro-keyword-glass:hover {
+  border-color: rgba(255, 255, 255, 0.68);
+  box-shadow:
+    0 12px 40px rgba(30, 24, 20, 0.11),
+    0 1px 0 rgba(255, 255, 255, 0.88) inset,
+    0 -1px 0 rgba(51, 43, 39, 0.05) inset;
+}
+
+.intro-keyword-glass:focus-within {
+  border-color: rgba(214, 67, 47, 0.42);
+  box-shadow:
+    0 12px 44px rgba(30, 24, 20, 0.12),
+    0 0 0 3px rgba(214, 67, 47, 0.11),
+    0 1px 0 rgba(255, 255, 255, 0.82) inset,
+    0 -1px 0 rgba(51, 43, 39, 0.05) inset;
+  transform: translateY(-1px);
+}
+
+.intro-keyword-hint {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  pointer-events: none;
+  color: rgba(54, 48, 53, 0.48);
+  font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: clamp(13px, 0.92vw, 15px);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.35;
+  white-space: nowrap;
+  transition:
+    opacity 0.48s var(--keyword-glass-ease) 0.06s,
+    transform 0.52s var(--keyword-glass-ease) 0.04s,
+    filter 0.45s var(--keyword-glass-ease);
+}
+
+.intro-keyword-glass:focus-within .intro-keyword-hint,
+.intro-keyword-glass.has-value .intro-keyword-hint {
+  opacity: 0;
+  transform: translateY(5px) scale(0.985);
+  filter: blur(3px);
+  transition:
+    opacity 0.36s var(--keyword-glass-ease),
+    transform 0.42s var(--keyword-glass-ease),
+    filter 0.32s var(--keyword-glass-ease);
+}
+
+.intro-keyword-input {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: clamp(14px, 0.95vw, 16px);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  caret-color: var(--accent);
+  transition: color 0.3s var(--keyword-glass-ease);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.intro-keyword-input::-webkit-scrollbar {
+  display: none;
+}
+
+body.is-region-focus .intro-keyword {
+  opacity: 0;
+  filter: blur(2px);
+  transform: translate(var(--intro-title-x, 0px), -6px);
+  transition-delay: 120ms;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-keyword-glass,
+  .intro-keyword-hint,
+  .intro-keyword-input {
+    transition-duration: 0.08s;
+  }
+
+  .intro-keyword-hint {
+    transition-delay: 0s;
+  }
+
+  .intro-keyword-glass:focus-within {
+    transform: none;
+  }
+}
+
 .globe-stage {
   position: fixed;
   inset: 0;
@@ -216,6 +401,57 @@ body.is-region-focus .globe-focus-back {
 .globe-focus-back:focus-visible {
   outline: 2px solid rgba(214, 67, 47, 0.55);
   outline-offset: 3px;
+}
+
+.focus-cover-notice {
+  position: fixed;
+  left: clamp(16px, 3.5vw, 40px);
+  right: auto;
+  bottom: clamp(16px, 3.2vw, 40px);
+  z-index: 26;
+  box-sizing: border-box;
+  max-width: min(520px, calc(100vw - 32px));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body.is-focus-cover-notice-visible .focus-cover-notice {
+  opacity: 0.7;
+  transform: translateY(0);
+}
+
+.focus-cover-notice__zh,
+.focus-cover-notice__en {
+  margin: 0;
+  color: #6e6e6e;
+  font-family:
+    "Source Han Sans SC",
+    "Source Han Sans TC",
+    "Noto Sans SC",
+    "PingFang SC",
+    "Microsoft YaHei",
+    sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+}
+
+.focus-cover-notice__zh {
+  margin-bottom: 6px;
+}
+
+.focus-cover-notice__en {
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
 }
 
 .region-cover-layer {
@@ -312,12 +548,6 @@ body.is-region-focus .globe-focus-back {
     0 0 0 1px rgba(255, 252, 245, 0.5) inset;
 }
 
-body.is-region-focus .drag-hint {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 400ms ease;
-}
-
 #globeCanvas {
   width: 100%;
   height: 100%;
@@ -355,7 +585,20 @@ body.is-region-focus .vignette {
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  animation: hint-in 1000ms 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  opacity: 0;
+  pointer-events: none;
+  filter: blur(2px);
+  transform: translateX(12px);
+  transition:
+    opacity 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body.is-drag-hint-visible .drag-hint {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateX(0);
 }
 
 .drag-hint span {
@@ -369,9 +612,9 @@ body.is-region-focus .vignette {
   z-index: 7;
   box-sizing: border-box;
   width: auto;
-  min-width: min(420px, calc(100vw - 48px));
+  min-width: min(280px, calc(100vw - 48px));
   max-width: min(760px, calc(100vw - 48px));
-  padding: 20px 20px 18px;
+  padding: 20px;
   border: 1px solid rgba(51, 43, 39, 0.16);
   background: rgba(244, 239, 229, 0.93);
   backdrop-filter: blur(6px);
@@ -403,24 +646,49 @@ body.is-region-focus .vignette {
 
 .book-card-close {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
   border: 0;
+  border-radius: 6px;
   background: transparent;
-  color: rgba(40, 34, 33, 0.65);
-  font-size: 22px;
+  color: rgba(40, 34, 33, 0.62);
+  font-size: 20px;
   line-height: 1;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.book-card-close:hover {
+  color: rgba(40, 34, 33, 0.88);
+  background: rgba(51, 43, 39, 0.06);
 }
 
 .book-card-actions {
-  position: absolute;
-  top: 10px;
-  right: 42px;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.book-card-loc-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin-bottom: 6px;
+  min-height: 28px;
+  /* Reserve space for absolutely positioned `.book-card-close`. */
+  padding-right: 40px;
 }
 
 .book-card-loc-wrap {
@@ -435,21 +703,29 @@ body.is-region-focus .vignette {
 }
 
 .book-card-location-zh {
-  margin: 0 0 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
   font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  font-size: calc(clamp(13px, 1.05vw, 15px) * var(--scale-card-loc-zh));
+  font-size: calc(clamp(12.5px, 1.02vw, 15px) * var(--scale-card-loc-zh));
   letter-spacing: 0.05em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
 }
 
 .book-card-location-en {
   margin: 0;
+  padding-right: 0;
   color: var(--accent);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  font-size: calc(12.75px * var(--scale-card-loc-en));
+  font-size: calc(12.5px * var(--scale-card-loc-en));
   font-weight: 600;
   font-style: normal;
   letter-spacing: 0.04em;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 
 .book-card-title {
@@ -465,6 +741,9 @@ body.is-region-focus .vignette {
   margin: 0 0 6px;
   font-style: normal;
   font-size: calc(26px * var(--scale-card-title-zh));
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 
 .book-card-title-en {
@@ -475,6 +754,9 @@ body.is-region-focus .vignette {
   font-style: italic;
   font-weight: 500;
   line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 
 .book-card-title-en.is-empty {
@@ -486,7 +768,10 @@ body.is-region-focus .vignette {
   color: rgba(53, 45, 43, 0.76);
   font-size: calc(13px * var(--scale-card-meta));
   letter-spacing: 0.03em;
-  white-space: nowrap;
+  line-height: 1.45;
+  white-space: pre-line;
+  overflow-wrap: normal;
+  max-width: 100%;
 }
 
 .book-card-nav {
@@ -526,9 +811,22 @@ body.is-region-focus .vignette {
   text-align: center;
 }
 
+.book-card.book-card--tight .book-card-location-zh {
+  font-size: calc(clamp(12px, 1vw, 14px) * var(--scale-card-loc-zh));
+  letter-spacing: 0.045em;
+}
+
 .book-card.book-card--tight .book-card-location-en {
   font-size: calc(11.75px * var(--scale-card-loc-en));
   letter-spacing: 0.035em;
+}
+
+.book-card.book-card--tight .book-card-title-zh {
+  font-size: calc(22px * var(--scale-card-title-zh));
+}
+
+.book-card.book-card--tight .book-card-title-en {
+  font-size: calc(16px * var(--scale-card-title-en));
 }
 
 .book-card.book-card--tight .book-card-meta {
@@ -536,9 +834,22 @@ body.is-region-focus .vignette {
   letter-spacing: 0.02em;
 }
 
+.book-card.book-card--tighter .book-card-location-zh {
+  font-size: calc(clamp(11px, 0.95vw, 13px) * var(--scale-card-loc-zh));
+  letter-spacing: 0.04em;
+}
+
 .book-card.book-card--tighter .book-card-location-en {
   font-size: calc(10.85px * var(--scale-card-loc-en));
   letter-spacing: 0.025em;
+}
+
+.book-card.book-card--tighter .book-card-title-zh {
+  font-size: calc(19px * var(--scale-card-title-zh));
+}
+
+.book-card.book-card--tighter .book-card-title-en {
+  font-size: calc(14.5px * var(--scale-card-title-en));
 }
 
 .book-card.book-card--tighter .book-card-meta {
@@ -567,18 +878,6 @@ body.is-region-focus .vignette {
   }
 }
 
-@keyframes hint-in {
-  from {
-    opacity: 0;
-    transform: translateX(12px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .intro {
     transition:
@@ -586,6 +885,12 @@ body.is-region-focus .vignette {
       filter 80ms linear,
       transform 80ms linear,
       visibility 0s linear 0s;
+  }
+
+  .intro-copy-rise {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 
   body.is-region-focus .intro {
@@ -599,15 +904,21 @@ body.is-region-focus .vignette {
   .intro .eyebrow,
   .intro h1,
   .intro .lede,
+  .intro .intro-keyword,
   body.is-region-focus .eyebrow,
   body.is-region-focus h1,
-  body.is-region-focus .lede {
+  body.is-region-focus .lede,
+  body.is-region-focus .intro-keyword {
     transition-duration: 80ms;
     transition-delay: 0ms;
   }
 
   .globe-focus-back,
-  body.is-region-focus .globe-focus-back {
+  body.is-region-focus .globe-focus-back,
+  .focus-cover-notice,
+  body.is-focus-cover-notice-visible .focus-cover-notice,
+  .drag-hint,
+  body.is-drag-hint-visible .drag-hint {
     transition-duration: 80ms;
   }
 
@@ -641,7 +952,7 @@ body.is-region-focus .vignette {
   }
 
   .book-card {
-    min-width: min(300px, calc(100vw - 36px));
+    min-width: min(260px, calc(100vw - 36px));
     max-width: calc(100vw - 36px);
   }
 }

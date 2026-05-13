@@ -1,2 +1,5 @@
 .DS_Store
 
+# Spreadsheet editor lock files (e.g. LibreOffice)
+.~*.xlsx
+
