@@ -3,3 +3,6 @@
 # Spreadsheet editor lock files (e.g. LibreOffice)
 .~*.xlsx
 
+# Source spreadsheets — keep locally, do not publish to GitHub
+民族志信息表*.xlsx
+
