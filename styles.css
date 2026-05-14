@@ -216,6 +216,10 @@ body.is-region-focus .lede {
     background 0.45s var(--keyword-glass-ease);
 }
 
+.intro-keyword-icon {
+  display: none;
+}
+
 .intro-keyword-field {
   position: relative;
   display: grid;
@@ -987,5 +991,133 @@ body.is-drag-hint-visible .drag-hint {
     border-radius: 18px;
     box-shadow: 0 18px 42px rgba(30, 24, 20, 0.2);
     overscroll-behavior: contain;
+  }
+
+  /* Compact circular search on narrow viewports; expands when focused or has text */
+  .intro-keyword {
+    margin-top: clamp(12px, 3vw, 20px);
+  }
+
+  .intro-keyword-glass {
+    transition:
+      border-color 0.42s var(--keyword-glass-ease),
+      box-shadow 0.48s var(--keyword-glass-ease),
+      transform 0.55s var(--keyword-glass-ease),
+      background 0.45s var(--keyword-glass-ease),
+      width 0.5s var(--keyword-glass-ease),
+      max-width 0.5s var(--keyword-glass-ease),
+      min-width 0.5s var(--keyword-glass-ease),
+      border-radius 0.45s var(--keyword-glass-ease),
+      padding 0.4s var(--keyword-glass-ease);
+  }
+
+  .intro-keyword-glass:not(:focus-within):not(.has-value) {
+    width: 52px;
+    min-width: 52px;
+    max-width: 52px;
+    height: 52px;
+    min-height: 52px;
+    padding: 0;
+    border-radius: 50%;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .intro-keyword-glass:focus-within,
+  .intro-keyword-glass.has-value {
+    width: min(92vw, 360px);
+    max-width: min(92vw, 360px);
+    min-width: min(92vw, 360px);
+    height: auto;
+    min-height: 52px;
+    padding: 12px clamp(16px, 4vw, 22px);
+    border-radius: 999px;
+    justify-content: flex-start;
+    overflow: visible;
+  }
+
+  .intro-keyword-glass:not(:focus-within):not(.has-value) .intro-keyword-width-measure,
+  .intro-keyword-glass:not(:focus-within):not(.has-value) .intro-keyword-hint {
+    display: none;
+  }
+
+  .intro-keyword-glass:not(:focus-within):not(.has-value) .intro-keyword-field {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+  }
+
+  .intro-keyword-glass:not(:focus-within):not(.has-value) .intro-keyword-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    caret-color: var(--accent);
+    text-align: center;
+  }
+
+  .intro-keyword-glass:focus-within .intro-keyword-input,
+  .intro-keyword-glass.has-value .intro-keyword-input {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    min-height: 1.4em;
+    border-radius: 999px;
+    color: var(--ink);
+    -webkit-text-fill-color: var(--ink);
+    text-align: start;
+  }
+
+  .intro-keyword-glass:focus-within .intro-keyword-field,
+  .intro-keyword-glass.has-value .intro-keyword-field {
+    display: grid;
+    grid-template-columns: max-content;
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+
+  .intro-keyword-icon {
+    display: block;
+    grid-area: 1 / 1;
+    justify-self: center;
+    align-self: center;
+    z-index: 0;
+    margin: 0;
+    font-size: 1.35rem;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+    transition:
+      opacity 0.48s var(--keyword-glass-ease) 0.06s,
+      transform 0.52s var(--keyword-glass-ease) 0.04s,
+      filter 0.45s var(--keyword-glass-ease);
+  }
+
+  .intro-keyword-glass:focus-within .intro-keyword-icon,
+  .intro-keyword-glass.has-value .intro-keyword-icon {
+    opacity: 0;
+    transform: translateY(5px) scale(0.92);
+    filter: blur(3px);
+    transition:
+      opacity 0.36s var(--keyword-glass-ease),
+      transform 0.42s var(--keyword-glass-ease),
+      filter 0.32s var(--keyword-glass-ease);
+  }
+}
+
+@media (max-width: 760px) and (prefers-reduced-motion: reduce) {
+  .intro-keyword-glass,
+  .intro-keyword-icon {
+    transition-duration: 0.08s;
   }
 }
