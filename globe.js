@@ -2861,12 +2861,20 @@ document.addEventListener("keydown", (e) => {
 
 const keywordSearch = document.querySelector("#keywordSearch");
 const keywordSearchGlass = document.querySelector("#keywordSearchGlass");
+const keywordSearchMirror = document.querySelector(".intro-keyword-input-mirror");
+const keywordSearchClear = document.querySelector("#keywordSearchClear");
 if (keywordSearch) {
+  const syncKeywordMirror = () => {
+    if (!keywordSearchMirror) return;
+    const v = keywordSearch.value;
+    keywordSearchMirror.textContent = v.length > 0 ? v : "\u200b";
+  };
   const syncSearchQuery = () => {
     state.searchQuery = normalizeKeywordQuery(keywordSearch.value);
     if (keywordSearchGlass) {
       keywordSearchGlass.classList.toggle("has-value", keywordSearch.value.trim() !== "");
     }
+    syncKeywordMirror();
   };
   keywordSearch.addEventListener("focus", () => {
     state.searchFocused = true;
@@ -2877,6 +2885,16 @@ if (keywordSearch) {
     syncSearchQuery();
   });
   keywordSearch.addEventListener("input", syncSearchQuery);
+  if (keywordSearchClear) {
+    keywordSearchClear.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+    });
+    keywordSearchClear.addEventListener("click", () => {
+      keywordSearch.value = "";
+      syncSearchQuery();
+      keywordSearch.focus();
+    });
+  }
   syncSearchQuery();
 }
 

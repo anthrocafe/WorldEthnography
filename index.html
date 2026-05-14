@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>World Ethnography</title>
-    <link rel="stylesheet" href="./styles.css?v=31" />
+    <link rel="stylesheet" href="./styles.css?v=32" />
   </head>
   <body>
     <main class="page-shell">
@@ -19,6 +19,7 @@
                 <span class="intro-keyword-icon" aria-hidden="true">🔍</span>
                 <span class="intro-keyword-width-measure" aria-hidden="true">搜索关键词，定位民族志作品</span>
                 <span class="intro-keyword-hint" aria-hidden="true">搜索关键词，定位民族志作品</span>
+                <span class="intro-keyword-input-mirror" aria-hidden="true"></span>
                 <input
                   id="keywordSearch"
                   class="intro-keyword-input"
@@ -29,6 +30,14 @@
                   aria-label="按关键词筛选地图上的民族志"
                 />
               </div>
+              <button
+                id="keywordSearchClear"
+                class="intro-keyword-clear"
+                type="button"
+                aria-label="清除关键词"
+              >
+                ×
+              </button>
             </label>
           </div>
         </div>
@@ -91,6 +100,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
     <script src="./books-data.js?v=23"></script>
-    <script src="./globe.js?v=74"></script>
+    <script src="./globe.js?v=76"></script>
   </body>
 </html>

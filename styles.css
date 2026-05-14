@@ -322,6 +322,19 @@ body.is-region-focus .lede {
   display: none;
 }
 
+.intro-keyword-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.intro-keyword-input-mirror {
+  display: none;
+}
+
+.intro-keyword-clear {
+  display: none;
+}
+
 body.is-region-focus .intro-keyword {
   opacity: 0;
   filter: blur(2px);
@@ -1023,19 +1036,6 @@ body.is-drag-hint-visible .drag-hint {
     overflow: hidden;
   }
 
-  .intro-keyword-glass:focus-within,
-  .intro-keyword-glass.has-value {
-    width: min(92vw, 360px);
-    max-width: min(92vw, 360px);
-    min-width: min(92vw, 360px);
-    height: auto;
-    min-height: 52px;
-    padding: 12px clamp(16px, 4vw, 22px);
-    border-radius: 999px;
-    justify-content: flex-start;
-    overflow: visible;
-  }
-
   .intro-keyword-glass:not(:focus-within):not(.has-value) .intro-keyword-width-measure,
   .intro-keyword-glass:not(:focus-within):not(.has-value) .intro-keyword-hint {
     display: none;
@@ -1063,6 +1063,44 @@ body.is-drag-hint-visible .drag-hint {
     text-align: center;
   }
 
+  .intro-keyword-glass:focus-within,
+  .intro-keyword-glass.has-value {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    width: fit-content;
+    max-width: calc(100vw - 56px);
+    min-width: 0;
+    height: auto;
+    min-height: 52px;
+    padding: 12px clamp(12px, 3vw, 18px) 12px clamp(14px, 3.5vw, 20px);
+    border-radius: 999px;
+    justify-content: flex-start;
+    overflow: visible;
+  }
+
+  /* Long placeholder measure was forcing a near-full-width pill */
+  .intro-keyword-glass:focus-within .intro-keyword-width-measure,
+  .intro-keyword-glass.has-value .intro-keyword-width-measure {
+    display: none;
+  }
+
+  .intro-keyword-glass:not(:focus-within):not(.has-value) .intro-keyword-input-mirror {
+    display: none;
+  }
+
+  .intro-keyword-glass:focus-within .intro-keyword-field,
+  .intro-keyword-glass.has-value .intro-keyword-field {
+    display: grid;
+    grid-template-columns: max-content;
+    width: max-content;
+    max-width: calc(100vw - 100px);
+    min-width: 0;
+    height: auto;
+    flex: 0 1 auto;
+  }
+
   .intro-keyword-glass:focus-within .intro-keyword-input,
   .intro-keyword-glass.has-value .intro-keyword-input {
     position: relative;
@@ -1076,14 +1114,27 @@ body.is-drag-hint-visible .drag-hint {
     text-align: start;
   }
 
-  .intro-keyword-glass:focus-within .intro-keyword-field,
-  .intro-keyword-glass.has-value .intro-keyword-field {
-    display: grid;
-    grid-template-columns: max-content;
-    width: max-content;
+  .intro-keyword-glass:focus-within .intro-keyword-input-mirror,
+  .intro-keyword-glass.has-value .intro-keyword-input-mirror {
+    display: block;
+    grid-area: 1 / 1;
+    align-self: center;
+    visibility: hidden;
+    white-space: nowrap;
+    overflow: hidden;
+    box-sizing: border-box;
     max-width: 100%;
-    min-width: 0;
-    height: auto;
+    min-width: 3.25ch;
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: clamp(14px, 0.95vw, 16px);
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    pointer-events: none;
+    user-select: none;
   }
 
   .intro-keyword-icon {
@@ -1112,6 +1163,37 @@ body.is-drag-hint-visible .drag-hint {
       opacity 0.36s var(--keyword-glass-ease),
       transform 0.42s var(--keyword-glass-ease),
       filter 0.32s var(--keyword-glass-ease);
+  }
+
+  .intro-keyword-clear {
+    display: none;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    margin: 0;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 50%;
+    background: rgba(255, 252, 246, 0.42);
+    -webkit-backdrop-filter: blur(12px) saturate(1.15);
+    backdrop-filter: blur(12px) saturate(1.15);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset;
+    color: rgba(54, 48, 53, 0.72);
+    font-size: 22px;
+    line-height: 1;
+    font-weight: 300;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .intro-keyword-clear:active {
+    transform: scale(0.94);
+  }
+
+  .intro-keyword-glass.has-value .intro-keyword-clear {
+    display: inline-flex;
   }
 }
 
