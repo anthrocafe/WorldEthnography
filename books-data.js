@@ -1750,5 +1750,57 @@ window.ETHNOGRAPHY_BOOKS = [
     "lon": 28.23,
     "sourceField": "莱索托",
     "locationEn": "Lesotho"
+  },
+  {
+    "id": "ethnography-122",
+    "title": "《阶序的流转》(The Traffic in Hierarchy)",
+    "year": 2017,
+    "author": "Ward Keeler",
+    "publisher": "University of Hawaii Press",
+    "summary": "曼德勒寺院与街头日常生活中，男性如何在成为僧侣、家主或跨性别者之间做出选择，揭示等级制度如何规定每种选择的特权与代价。\n\n曼德勒寺院及城市空间的长期参与田野调查，结合性别、宗教实践与杜蒙等级理论的综合分析。\n\n缅甸对等级的内化式认同是军政府得以长期统治的社会土壤；男性气质的多重形态共同揭示了依附与自主，作为缅甸社会组织核心原则的深层逻辑。",
+    "location": "Yangon / Mandalay",
+    "countryOrRegion": "Burma/Myanmar",
+    "lat": 21.9588,
+    "lon": 96.0891,
+    "sourceField": "缅甸·仰光 / 曼德勒",
+    "locationEn": "Burma/Myanmar·Yangon / Mandalay",
+    "sites": [
+      {
+        "lat": 16.8409,
+        "lon": 96.1735
+      },
+      {
+        "lat": 21.9588,
+        "lon": 96.0891
+      }
+    ]
+  },
+  {
+    "id": "ethnography-123",
+    "title": "《被扰动的边境资本主义》(Border Capitalism, Disrupted)",
+    "year": 2018,
+    "author": "Stephen Campbell",
+    "publisher": "Cornell University Press",
+    "summary": "泰缅边境湄索经济特区的缅甸移民劳工如何在资本弹性化、警察管控与非正规中介的交织下维系生存，并以流动性抗争推动劳动法规的在地转变。\n\n在湄索近两年的田野调查，追踪工人、警察、雇主、NGO与非正规护照中介的日常互动实践。\n\n工人的流动性抗争才是驱动边境资本主义重组的核心动力；全球南方的劳工脆弱性具有独特逻辑。",
+    "location": "Mae Sot",
+    "countryOrRegion": "Thailand (Burma/Myanmar / Thai Border)",
+    "lat": 16.7167,
+    "lon": 98.5667,
+    "sourceField": "泰国（缅泰边境）·湄索",
+    "locationEn": "Thailand (Burma/Myanmar / Thai Border)·Mae Sot"
+  },
+  {
+    "id": "ethnography-124",
+    "title": "《拒斥权利》(Rights Refused)",
+    "year": 2023,
+    "author": "Elliott Prasse-Freeman",
+    "publisher": "Stanford University Press",
+    "summary": "缅甸2010年代政治转型期，民间活动人士如何在国家暴力与人权话语之间创造出犁地抗议、诅咒仪式与漫画等非常规抵抗策略。\n\n与农民、工人及全国各地社运人士历时十年的田野研究，结合2021年政变后的数字民族志与深度访谈。\n\n民众对人权话语的拒绝并非政治冷漠，而是一种主动的存在性策略；「拒斥」本身就是有效的政治实践。",
+    "location": "Nationwide",
+    "countryOrRegion": "Burma/Myanmar",
+    "lat": 21.9162,
+    "lon": 95.956,
+    "sourceField": "缅甸·全国多地",
+    "locationEn": "Burma/Myanmar·Nationwide"
   }
 ];
