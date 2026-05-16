@@ -367,6 +367,8 @@ EXACT_COORDS_BY_EN_TITLE: dict[str, tuple[float, float]] = {
     "The Land of Open Graves": (31.3322, -110.9378),
     "After the Revolution": (44.7866, 20.4489),
     "Creative Reckonings": (30.0444, 31.2357),
+    # Pernambuco sugar zone / Timbaúba area (Northeast Brazil field site).
+    "Death Without Weeping": (-7.5053, -35.3181),
     "The Anxieties of Mobility": (1.1301, 104.0529),
     "Shaving the Beasts": (42.55, -8.42),
     "The Reckoning of Pluralism": (41.0082, 28.9784),
