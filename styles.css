@@ -589,6 +589,14 @@ body.is-region-focus .vignette {
     linear-gradient(0deg, rgba(238, 232, 220, 0.12), transparent 32%);
 }
 
+/* Regional focus: soften rim vignette so canvas pins near the lower/side edges stay readable (all focus regions). */
+body.is-region-focus[data-focus-region] .vignette {
+  background:
+    radial-gradient(circle at 52% 52%, transparent 0 34%, rgba(238, 232, 220, 0.06) 52%, rgba(238, 232, 220, 0.36) 82%),
+    linear-gradient(90deg, rgba(238, 232, 220, 0.1), transparent 44%),
+    linear-gradient(0deg, rgba(238, 232, 220, 0.06), transparent 38%);
+}
+
 .drag-hint {
   position: fixed;
   right: clamp(22px, 4vw, 64px);

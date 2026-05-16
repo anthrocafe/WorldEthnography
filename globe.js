@@ -52,11 +52,11 @@ const REGION_FOCUS = {
   pacific: {
     id: "pacific",
     label: "美拉尼西亚",
-    centerLon: 144,
-    centerLat: -5,
-    radiusMul: 2.05,
+    centerLon: 156,
+    centerLat: -9,
+    radiusMul: 1.85,
     contains(lon, lat) {
-      return lat >= -12 && lat <= 1 && lon >= 129 && lon <= 156;
+      return lat >= -21 && lat <= 1 && lon >= 129 && lon <= 181;
     },
     bookIds: new Set([
       "ethnography-13",
@@ -67,6 +67,7 @@ const REGION_FOCUS = {
       "ethnography-69",
       "ethnography-70",
       "ethnography-71",
+      "ethnography-119",
     ]),
   },
   crescent: {
@@ -114,6 +115,7 @@ const COVER_SLUG_BY_BOOK_ID = {
   "ethnography-69": "leviathans-at-the-gold-mine",
   "ethnography-70": "the-gender-of-the-gift",
   "ethnography-71": "cheap-meat",
+  "ethnography-119": "the-method-of-hope",
   "ethnography-24": "politics-of-piety",
   "ethnography-73": "dreams-that-matter",
   "ethnography-93": "an-enchanted-modern",
@@ -127,6 +129,7 @@ const COVER_SLUG_BY_BOOK_ID = {
 /** Focus-mode cover leader lines: skip these pin groups for a book so the cover anchors to another site (e.g. Iraq vs. Lebanon). */
 const FOCUS_COVER_SKIP_GROUP_KEYS_BY_BOOK_ID = {
   "ethnography-103": new Set(["region:levant"]),
+  "ethnography-71": new Set(["-9.444,147.180"]),
 };
 
 /** Keep Zh + En titles on one line; widen card beyond default focus-split max when needed. */
@@ -877,6 +880,11 @@ function syncBodyFocusClass() {
   document.body.classList.toggle("is-region-focus", Boolean(on));
   document.body.classList.toggle("is-focus-cover-notice-visible", state.focusBlendTarget > 0 || Boolean(state.focusMode));
   document.body.classList.toggle("is-drag-hint-visible", state.focusBlendTarget === 0 && !state.focusMode);
+  if (state.focusRegionId) {
+    document.body.dataset.focusRegion = state.focusRegionId;
+  } else {
+    delete document.body.dataset.focusRegion;
+  }
   if (regionCoverLayer) {
     regionCoverLayer.classList.toggle("is-active", state.focusBlend > 0.35 && state.focusRegionId);
     regionCoverLayer.setAttribute("aria-hidden", state.focusBlend > 0.35 ? "false" : "true");
@@ -2006,15 +2014,13 @@ function drawRegionLeaderLines() {
     if (![pinX, pinY, coverX, coverY].every(Number.isFinite)) continue;
 
     const isHighlighted = hoveredFocusBookId && btn.dataset.bookId === hoveredFocusBookId;
+    ctx.lineWidth = isHighlighted ? 2.85 : 1.25;
+    ctx.shadowBlur = isHighlighted ? 9 : 4;
     ctx.strokeStyle = isHighlighted
-      ? `rgba(214, 67, 47, ${0.42 * fade})`
+      ? `rgba(214, 67, 47, ${0.72 * fade})`
       : `rgba(86, 80, 75, ${0.24 * fade})`;
-    ctx.fillStyle = isHighlighted
-      ? `rgba(214, 67, 47, ${0.82 * fade})`
-      : `rgba(86, 80, 75, ${0.46 * fade})`;
-    ctx.shadowColor = isHighlighted
-      ? `rgba(244, 239, 229, ${0.72 * fade})`
-      : `rgba(244, 239, 229, ${0.38 * fade})`;
+    ctx.fillStyle = isHighlighted ? `rgba(255, 252, 245, ${0.94 * fade})` : `rgba(86, 80, 75, ${0.46 * fade})`;
+    ctx.shadowColor = isHighlighted ? `rgba(255, 102, 72, ${0.55 * fade})` : `rgba(244, 239, 229, ${0.38 * fade})`;
 
     const dx = coverX - pinX;
     const dy = coverY - pinY;
@@ -2029,9 +2035,24 @@ function drawRegionLeaderLines() {
     ctx.moveTo(pinX, pinY);
     ctx.quadraticCurveTo(bendX, bendY, endX, endY);
     ctx.stroke();
+    const dotR = isHighlighted ? 5.1 : 3.1;
+    if (isHighlighted) {
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(214, 67, 47, ${0.55 * fade})`;
+      ctx.arc(pinX, pinY, dotR + 3.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
     ctx.beginPath();
-    ctx.arc(pinX, pinY, 3.1, 0, Math.PI * 2);
+    ctx.fillStyle = isHighlighted ? `rgba(255, 252, 245, ${0.98 * fade})` : `rgba(86, 80, 75, ${0.46 * fade})`;
+    ctx.arc(pinX, pinY, dotR, 0, Math.PI * 2);
     ctx.fill();
+    if (isHighlighted) {
+      ctx.beginPath();
+      ctx.strokeStyle = `rgba(214, 67, 47, ${0.85 * fade})`;
+      ctx.lineWidth = 1.8;
+      ctx.arc(pinX, pinY, dotR + 0.6, 0, Math.PI * 2);
+      ctx.stroke();
+    }
   }
 
   ctx.restore();
@@ -2268,6 +2289,7 @@ function drawPins(time) {
     const isHovered = hoveredPinId === group.key;
     const focusDimming = state.focusMode && state.focusBlend > 0.34;
     const focusHighlighted = focusDimming && focusBookMatchesGroup(group);
+    const focusCoverPinBoost = focusHighlighted;
 
     let kwAlpha = 1;
     let kwScale = 1;
@@ -2284,16 +2306,26 @@ function drawPins(time) {
 
     if (kwAlpha < 0.012) continue;
 
-    const rDraw = pinRadius * kwScale;
-    const glowR = (pinRadius + 4 + pulse * 2.5) * kwScale;
-    const ringR = (pinRadius + 3.2) * kwScale;
+    let rDraw = pinRadius * kwScale;
+    let glowR = (pinRadius + 4 + pulse * 2.5) * kwScale;
+    let ringR = (pinRadius + 3.2) * kwScale;
     const hitR = (pinRadius + 8) * Math.max(kwScale, 0.85);
 
+    if (focusCoverPinBoost) {
+      rDraw *= 1.42;
+      glowR *= 1.62;
+      ringR *= 1.22;
+    }
+
     ctx.save();
-    ctx.globalAlpha = (0.5 + depth * 0.5) * suppressAlpha * kwAlpha;
+    const glowAlphaMul = focusCoverPinBoost ? 1.28 : 1;
+    ctx.globalAlpha = Math.min(1, (0.5 + depth * 0.5) * glowAlphaMul) * suppressAlpha * kwAlpha;
     ctx.beginPath();
     ctx.fillStyle =
       focusDimming && !focusHighlighted ? "rgba(96, 90, 84, 0.13)" : "rgba(214, 67, 47, 0.18)";
+    if (focusCoverPinBoost) {
+      ctx.fillStyle = "rgba(214, 67, 47, 0.34)";
+    }
     ctx.arc(point.x, point.y, glowR, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
@@ -2305,8 +2337,16 @@ function drawPins(time) {
       ctx.beginPath();
       ctx.strokeStyle =
         focusDimming && !focusHighlighted ? "rgba(86, 80, 75, 0.34)" : "rgba(214, 67, 47, 0.42)";
-      ctx.lineWidth = 1.2;
+      ctx.lineWidth = focusCoverPinBoost ? 2 : 1.2;
       ctx.arc(point.x, point.y, ringR, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    if (focusCoverPinBoost) {
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(255, 252, 245, 0.55)";
+      ctx.lineWidth = 2.4;
+      ctx.arc(point.x, point.y, rDraw + 2.8, 0, Math.PI * 2);
       ctx.stroke();
     }
 
@@ -2317,8 +2357,14 @@ function drawPins(time) {
         : isSelected || isHovered || focusHighlighted
           ? "rgba(214, 67, 47, 0.96)"
           : "rgba(196, 58, 42, 0.9)";
+    if (focusCoverPinBoost) {
+      ctx.fillStyle = "rgba(235, 60, 36, 0.98)";
+    }
     ctx.strokeStyle = focusDimming && !focusHighlighted ? "rgba(244, 239, 229, 0.58)" : "rgba(250, 245, 236, 0.9)";
-    ctx.lineWidth = 1.2;
+    if (focusCoverPinBoost) {
+      ctx.strokeStyle = "rgba(255, 252, 245, 0.98)";
+    }
+    ctx.lineWidth = focusCoverPinBoost ? 2.2 : 1.2;
     ctx.arc(point.x, point.y, rDraw, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();

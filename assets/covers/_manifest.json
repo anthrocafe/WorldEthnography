@@ -255,6 +255,21 @@
     "error": null
   },
   {
+    "slug": "the-method-of-hope",
+    "sheet": "太平洋",
+    "title": "The Method of Hope",
+    "author": "Hirokazu Miyazaki",
+    "year": 2004,
+    "publisher": "Stanford University Press",
+    "isbn": "9780804757171",
+    "source_page": "https://www.sup.org/books/anthropology/method-hope",
+    "cover_url": "https://supress.sites-pro.stanford.edu/sites/supress/files/media/covers/6376.jpg",
+    "saved_path": "assets/covers/the-method-of-hope.jpg",
+    "bytes": 1316270,
+    "status": "ok",
+    "error": null
+  },
+  {
     "slug": "in-the-shadow-of-the-palms",
     "sheet": "太平洋",
     "title": "In the Shadow of the Palms",
