@@ -350,6 +350,7 @@ ROUGH_LAT_LON: dict[str, tuple[float, float]] = {
     "malaysia": (4.2, 101.97),
     "vietnam": (21.03, 105.85),
     "thailand": (15.87, 100.99),
+    "nepal": (27.95, 86.85),
     "india": (20.59, 78.96),
     "bangladesh": (23.68, 90.35),
     "pakistan": (30.38, 69.35),
@@ -378,6 +379,7 @@ ROUGH_LAT_LON = {
     "malaysia": (4.2, 101.97),
     "vietnam": (21.03, 105.85),
     "thailand": (15.87, 100.99),
+    "nepal": (27.95, 86.85),
     "india": (20.59, 78.96),
     "bangladesh": (23.68, 90.35),
     "pakistan": (30.38, 69.35),
@@ -472,6 +474,8 @@ def guess_lat_lon(en_line: str) -> tuple[float, float]:
 EXACT_COORDS_BY_EN_TITLE: dict[str, tuple[float, float]] = {
     "Everything Was Forever, Until It Was No More": (59.9343, 30.3351),
     "Dreams that Matter": (30.0444, 31.2357),
+    # Khumbu / Everest Region, Nepal Sherpa ethnography pin.
+    "Life and Death on Mt. Everest": (27.95, 86.85),
     "The Moral Neoliberal": (45.4642, 9.19),
     "Friction": (-0.7893, 113.9213),
     "The Intimate Economies of Bangkok": (13.7563, 100.5018),

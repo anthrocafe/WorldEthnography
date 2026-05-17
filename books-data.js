@@ -1932,5 +1932,19 @@ window.ETHNOGRAPHY_BOOKS = [
     "lon": 25.729,
     "sourceField": "芬兰 - 拉普兰",
     "locationEn": "Finland·Lapland"
+  },
+  {
+    "id": "ethnography-138",
+    "title": "《珠穆朗玛峰上的生与死》(Life and Death on Mt. Everest)",
+    "year": 1999,
+    "author": "Sherry B. Ortner",
+    "publisher": "Princeton University Press",
+    "summary": "探讨国际登山者与为其提供协助的夏尔巴人之间复杂而不断变化的合作、冲突与互依关系，以及攀登文化对当地社会的深远影响。\n\n结合数十年对夏尔巴人社会的长期田野调查与喜马拉雅登山历史档案分析。\n\n从实践理论出发，揭示夏尔巴人如何在极端生存环境与全球资本主义的相遇中，通过抗争、协商与灵性实践重塑自身文化与主体身份。",
+    "location": "Mt. Everest Region",
+    "countryOrRegion": "Nepal",
+    "lat": 27.95,
+    "lon": 86.85,
+    "sourceField": "尼泊尔 - 珠穆朗玛峰区域",
+    "locationEn": "Nepal·Mt. Everest Region"
   }
 ];
