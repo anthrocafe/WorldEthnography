@@ -1865,7 +1865,7 @@ window.ETHNOGRAPHY_BOOKS = [
   },
   {
     "id": "ethnography-132",
-    "title": "《抵抗的灵魂与资本主义纪律》(Spirits of Resistance and Capitalist Discipline: Factory Women in Malaysia)",
+    "title": "《抵抗的灵魂和资本主义规训》(Spirits of Resistance and Capitalist Discipline: Factory Women in Malaysia)",
     "year": 1987,
     "author": "Aihwa Ong（王爱华）",
     "publisher": "State University of New York Press",

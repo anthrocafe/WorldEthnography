@@ -85,6 +85,11 @@ _SUMMARY_OVERRIDE_BY_BOOK_ID: dict[str, str] = {
 }
 
 
+# Chinese display title tweaks not yet reflected in the spreadsheet canonical cell.
+_TITLE_OVERRIDE_BY_BOOK_ID: dict[str, str] = {
+    "ethnography-132": "《抵抗的灵魂和资本主义规训》(Spirits of Resistance and Capitalist Discipline: Factory Women in Malaysia)",
+}
+
 def spreadsheet_row_excluded(row: dict) -> bool:
     return (
         norm_author(row.get("author", "")),
@@ -547,11 +552,13 @@ def apply_row_to_book(book: dict, row: dict) -> None:
     loc_en = en_to_location_en(en_loc)
     title_canon = canonical_title(row["cn"], row["en"])
     book["title"] = title_canon
+    bid = str(book.get("id") or "")
+    if bid in _TITLE_OVERRIDE_BY_BOOK_ID:
+        book["title"] = _TITLE_OVERRIDE_BY_BOOK_ID[bid]
     book["author"] = str(row["author"]).strip()
     book["year"] = row["year"]
     book["publisher"] = row["publisher"] or book.get("publisher", "")
     book["summary"] = row["summary"]
-    bid = str(book.get("id") or "")
     if bid in _SUMMARY_OVERRIDE_BY_BOOK_ID:
         book["summary"] = _SUMMARY_OVERRIDE_BY_BOOK_ID[bid]
     book["sourceField"] = zh_loc or book.get("sourceField", "")
