@@ -70,6 +70,20 @@ _SPREADSHEET_EXCLUDES: frozenset[tuple[str, int, str]] = frozenset(
     },
 )
 
+# Editorial wording fixed in-repo; xlsx still has older phrasing — re-apply after each row merge.
+_SUMMARY_OVERRIDE_BY_BOOK_ID: dict[str, str] = {
+    "ethnography-45": (
+        "中医如何在上海与旧金山之间的跨国流通中，被重新组装为全球替代医学与中国现代性的双重象征。\n\n"
+        "上海中医院与旧金山中医实践者的多点民族志调查。\n\n"
+        "中医是\"异质世界化\"的产物，既非传统的遗存，也非西方的他者；其跨国流通揭示了现代性本身的多元路径。"
+    ),
+    "ethnography-93": (
+        "贝鲁特南郊什叶派穆斯林女性如何将公开虔诚实践与对现代性的渴望融合，形成独特的\"附魅主体\"——既非世俗自由主义，也非保守传统主义。"
+        "  达希亚区女性宗教活动、纪念仪式与日常生活的长期民族志调查。"
+        "  现代性与宗教虔诚并非天然对立；什叶派女性通过公开表演的虔诚，在伊斯兰框架内争取主体性，有力挑战了西方女性主义对能动性的狭隘预设。"
+    ),
+}
+
 
 def spreadsheet_row_excluded(row: dict) -> bool:
     return (
@@ -537,6 +551,9 @@ def apply_row_to_book(book: dict, row: dict) -> None:
     book["year"] = row["year"]
     book["publisher"] = row["publisher"] or book.get("publisher", "")
     book["summary"] = row["summary"]
+    bid = str(book.get("id") or "")
+    if bid in _SUMMARY_OVERRIDE_BY_BOOK_ID:
+        book["summary"] = _SUMMARY_OVERRIDE_BY_BOOK_ID[bid]
     book["sourceField"] = zh_loc or book.get("sourceField", "")
     book["locationEn"] = loc_en or book.get("locationEn", "")
     cor, loc = en_to_country_location(en_loc)
