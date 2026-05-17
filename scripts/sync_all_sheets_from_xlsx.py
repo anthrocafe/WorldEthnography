@@ -63,6 +63,22 @@ def norm_author(raw) -> str:
     return re.sub(r"\s+", " ", a)
 
 
+# Present in spreadsheets but deliberately omitted from books-data.js.
+_SPREADSHEET_EXCLUDES: frozenset[tuple[str, int, str]] = frozenset(
+    {
+        ("魏明毅", 2016, norm_title_cell("Quiet Workers: Days and Nights at the Dock")),
+    },
+)
+
+
+def spreadsheet_row_excluded(row: dict) -> bool:
+    return (
+        norm_author(row.get("author", "")),
+        int(row["year"]),
+        norm_title_cell(row.get("en", "")),
+    ) in _SPREADSHEET_EXCLUDES
+
+
 def parse_country_location(raw) -> tuple[str, str]:
     s = (raw or "")
     s = s.replace("\r\n", "\n").strip()
@@ -136,6 +152,87 @@ def titles_match_en(en_js: str, en_xlsx: str) -> bool:
     return False
 
 
+def en_same_book_edition_variant(a_en: str, b_en: str) -> bool:
+    """True when spreadsheet rows cite the same work with short/long subtitle variants."""
+    if not (a_en and b_en):
+        return False
+    aa, bb = norm_title_cell(a_en), norm_title_cell(b_en)
+    if aa.lower() == bb.lower():
+        return True
+    sa, sb = norm_en_for_match(aa), norm_en_for_match(bb)
+    if sa == sb:
+        return True
+    shorter, longer = (aa.lower(), bb.lower()) if len(aa) <= len(bb) else (bb.lower(), aa.lower())
+    if longer.startswith(shorter.rstrip()) and len(longer) > len(shorter):
+        suffix = longer[len(shorter) :].lstrip()
+        if suffix.startswith(":") or suffix.startswith(" ("):
+            return True
+    return SequenceMatcher(None, sa, sb).ratio() >= 0.97
+
+
+def merge_spreadsheet_variant_rows(rows: list[dict]) -> dict:
+    primary = sorted(
+        rows,
+        key=lambda r: (
+            -len(r["en"]),
+            -(len(str(r.get("summary") or "").strip())),
+            row_sort_key(r.get("sheet", "")),
+        ),
+    )[0]
+    base = dict(primary)
+    for other in rows:
+        if other is primary:
+            continue
+        summ_o = str(other.get("summary") or "").strip()
+        if len(summ_o) > len(str(base.get("summary") or "").strip()):
+            base["summary"] = other["summary"]
+        pub_o = str(other.get("publisher") or "").strip()
+        if pub_o and len(pub_o) > len(str(base.get("publisher") or "").strip()):
+            base["publisher"] = other["publisher"]
+        loc_o = other.get("country_loc")
+        if (
+            isinstance(loc_o, str)
+            and len(loc_o.strip()) > len(str(base.get("country_loc") or "").strip())
+        ):
+            base["country_loc"] = loc_o
+    return base
+
+
+def collapse_edition_duplicate_rows(rows: list[dict]) -> list[dict]:
+    grouped: dict[tuple[str, int], list[dict]] = {}
+    for r in rows:
+        grouped.setdefault((norm_author(r["author"]), int(r["year"])), []).append(r)
+    folded: list[dict] = []
+    for group in grouped.values():
+        if len(group) == 1:
+            folded.extend(group)
+            continue
+        indices = list(range(len(group)))
+        remaining = set(indices)
+        while remaining:
+            i = remaining.pop()
+            bag_idxs = [i]
+            progressed = True
+            while progressed:
+                progressed = False
+                removable = []
+                for j in list(remaining):
+                    if any(
+                        en_same_book_edition_variant(group[j]["en"], group[k]["en"])
+                        for k in bag_idxs
+                    ):
+                        bag_idxs.append(j)
+                        removable.append(j)
+                        progressed = True
+                for j in removable:
+                    remaining.discard(j)
+            chunk = [group[j] for j in bag_idxs]
+            folded.append(chunk[0] if len(chunk) == 1 else merge_spreadsheet_variant_rows(chunk))
+
+    folded.sort(key=lambda d: (d["author"].lower(), d["year"], d["en"].lower()))
+    return folded
+
+
 def row_sort_key(sheet_name: str) -> int:
     return SHEET_PRIORITY.get(sheet_name, 99)
 
@@ -189,7 +286,7 @@ def load_merged_rows(xlsx_path: Path) -> list[dict]:
         out.append(base)
 
     out.sort(key=lambda d: (d["author"].lower(), d["year"], d["en"].lower()))
-    return out
+    return collapse_edition_duplicate_rows(out)
 
 
 def load_books():
@@ -304,6 +401,9 @@ ROUGH_LAT_LON = {
     "netherlands": (52.13, 5.29),
     "botswana": (-22.33, 24.68),
     "papua new guinea": (-6.31, 143.96),
+    "taiwan": (23.65, 120.975),
+    "madagascar": (-19.0, 46.7),
+    "finland": (66.504, 25.729),
     "australia": (-25.27, 133.78),
     "colombia": (4.57, -74.3),
     "ecuador": (-1.83, -78.18),
@@ -380,7 +480,8 @@ EXACT_COORDS_BY_EN_TITLE: dict[str, tuple[float, float]] = {
     "The Underneath of Things": (7.956, -11.74),
     "The New Woman in Uzbekistan": (40.3864, 71.7864),
     "Evicted from Eternity": (41.895, 12.492),
-    "Islamic Modern": (4.5975, 101.0901),
+    # Peninsular Malaysia: shared pin for works whose field sites are close (Western/Central Malay states).
+    "Islamic Modern": (4.399, 101.53),
     "Bazaar Politics": (34.83, 69.08),
     "Ungovernable Life": (33.3152, 44.3661),
     "Passionate Uprisings": (35.6892, 51.389),
@@ -397,6 +498,13 @@ EXACT_COORDS_BY_EN_TITLE: dict[str, tuple[float, float]] = {
     "The Will to Improve": (-2.5489, 120.324),
     "The Make-Believe Space": (35.1856, 33.3823),
     "On the Edge of the Global": (-21.18, -175.2),
+    # New / edge-case titles merged from spreadsheets (short/long subtitle variants resolve here).
+    "Lost People": (-19.87, 46.75),
+    "Lost People: Magic and the Legacy of Slavery in Madagascar": (-19.87, 46.75),
+    "Global Cinderellas": (25.033, 121.565),
+    "Hunters, Pastoralists and Ranchers": (66.504, 25.729),
+    "Spirits of Resistance and Capitalist Discipline": (4.399, 101.53),
+    "Spirits of Resistance and Capitalist Discipline: Factory Women in Malaysia": (4.399, 101.53),
 }
 
 
@@ -503,6 +611,9 @@ def main():
         raise SystemExit(f"Missing xlsx: {xlsx_path}")
 
     rows = load_merged_rows(xlsx_path)
+    rows_before = len(rows)
+    rows = [r for r in rows if not spreadsheet_row_excluded(r)]
+    excluded_rows = rows_before - len(rows)
     books = load_books()
 
     used_book_ids: set[str] = set()
@@ -554,7 +665,8 @@ def main():
     new_books.sort(key=id_num)
 
     save_books(new_books)
-    print(f"xlsx_merged_rows: {len(rows)}")
+    print(f"xlsx_merged_rows: {rows_before}")
+    print(f"xlsx_after_exclusions: {len(rows)} (excluded: {excluded_rows})")
     print(f"books_after: {len(new_books)}")
     print(f"appended_books: {len(appended)}")
     for b in appended:
