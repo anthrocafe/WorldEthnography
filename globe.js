@@ -477,12 +477,21 @@ function resolvePublisherLabel(raw) {
   return OFFICIAL_PUBLISHER_NAMES[raw] ?? raw;
 }
 
+function englishMainTitleForCard(enInParens) {
+  const en = String(enInParens || "").trim();
+  if (!en) return "";
+  /* Card line: English bibliographic subtitles after ": " clutter the subtitle row. */
+  const cut = en.indexOf(": ");
+  if (cut === -1) return en;
+  return en.slice(0, cut).trim();
+}
+
 function splitTranslatedTitle(displayTitle) {
   const trimmed = String(displayTitle || "").trim();
   const match = /^([\s\S]+?)\s*[（(]([\s\S]+)[）)]\s*$/.exec(trimmed);
   const stripBookQuotes = (value) => String(value || "").replace(/[《》]/g, "").trim();
   if (!match) return { zh: stripBookQuotes(trimmed), en: "" };
-  return { zh: stripBookQuotes(match[1]), en: match[2].trim() };
+  return { zh: stripBookQuotes(match[1]), en: englishMainTitleForCard(match[2].trim()) };
 }
 
 function fallbackEnglishLocation(book) {
