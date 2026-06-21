@@ -1097,6 +1097,10 @@ function isFocusSplitCardOpen() {
   );
 }
 
+function isGlobalBookCardOpen() {
+  return !state.focusMode && bookCard && !bookCard.classList.contains("is-hidden");
+}
+
 function isMobileFocusLayout() {
   return state.width <= 760 || window.matchMedia("(max-width: 760px)").matches;
 }
@@ -2125,7 +2129,7 @@ function drawGlobe(time) {
     state.targetPitch += (state.focusPitchTarget - state.targetPitch) * camEase;
   }
 
-  const allowIdleSpin = state.focusBlend < 0.06 && !state.focusMode;
+  const allowIdleSpin = state.focusBlend < 0.06 && !state.focusMode && !isGlobalBookCardOpen();
   if (!state.isDragging) {
     if (allowIdleSpin) state.targetYaw += 0.00025;
     state.targetYaw += state.velocityX;
