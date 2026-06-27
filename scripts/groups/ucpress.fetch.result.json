@@ -1,0 +1,395 @@
+[
+  {
+    "slug": "slug",
+    "title": "english_title",
+    "author": "author",
+    "year": "year",
+    "publisher": "publisher",
+    "isbn": "isbn13",
+    "source_page": "source_page",
+    "cover_url": "cover_url",
+    "saved_path": null,
+    "bytes": 0,
+    "dims": null,
+    "status": "error",
+    "error": "http 000"
+  },
+  {
+    "slug": "the-pastoral-clinic",
+    "title": "The Pastoral Clinic",
+    "author": "Angela Garcia",
+    "year": "2010",
+    "publisher": "University of California Press",
+    "isbn": "9780520262089",
+    "source_page": "https://www.ucpress.edu/books/the-pastoral-clinic/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520262089.jpg",
+    "saved_path": "assets/covers/the-pastoral-clinic.jpg",
+    "bytes": 210215,
+    "dims": [
+      667,
+      1000
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "life-in-debt",
+    "title": "Life in Debt",
+    "author": "Clara Han",
+    "year": "2012",
+    "publisher": "University of California Press",
+    "isbn": "9780520272101",
+    "source_page": "https://www.ucpress.edu/books/life-in-debt/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520272101.jpg",
+    "saved_path": "assets/covers/life-in-debt.jpg",
+    "bytes": 196026,
+    "dims": [
+      666,
+      1000
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "fresh-fruit-broken-bodies",
+    "title": "Fresh Fruit, Broken Bodies",
+    "author": "Seth Holmes",
+    "year": "2013",
+    "publisher": "University of California Press",
+    "isbn": "9780520275140",
+    "source_page": "https://www.ucpress.edu/books/fresh-fruit-broken-bodies/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520275140.jpg",
+    "saved_path": "assets/covers/fresh-fruit-broken-bodies.jpg",
+    "bytes": 265903,
+    "dims": [
+      666,
+      1000
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "pathologies-of-power",
+    "title": "Pathologies of Power",
+    "author": "Paul Farmer",
+    "year": "2003",
+    "publisher": "University of California Press",
+    "isbn": "9780520243262",
+    "source_page": "https://www.ucpress.edu/books/pathologies-of-power-2/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520243262.jpg",
+    "saved_path": "assets/covers/pathologies-of-power.jpg",
+    "bytes": 874777,
+    "dims": [
+      1707,
+      2560
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "twice-dead",
+    "title": "Twice Dead",
+    "author": "Margaret Lock",
+    "year": "2002",
+    "publisher": "University of California Press",
+    "isbn": "9780520228146",
+    "source_page": "https://www.ucpress.edu/books/twice-dead/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520228146.jpg",
+    "saved_path": "assets/covers/twice-dead.jpg",
+    "bytes": 79446,
+    "dims": [
+      433,
+      648
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "alien-ocean",
+    "title": "Alien Ocean",
+    "author": "Stefan Helmreich",
+    "year": "2009",
+    "publisher": "University of California Press",
+    "isbn": "9780520250628",
+    "source_page": "https://www.ucpress.edu/books/alien-ocean/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520250628.jpg",
+    "saved_path": "assets/covers/alien-ocean.jpg",
+    "bytes": 2058885,
+    "dims": [
+      1707,
+      2560
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "moral-laboratories",
+    "title": "Moral Laboratories",
+    "author": "Cheryl Mattingly",
+    "year": "2014",
+    "publisher": "University of California Press",
+    "isbn": "9780520281202",
+    "source_page": "https://www.ucpress.edu/books/moral-laboratories/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520281202.jpg",
+    "saved_path": "assets/covers/moral-laboratories.jpg",
+    "bytes": 258675,
+    "dims": [
+      667,
+      1000
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "righteous-dopefiend",
+    "title": "Righteous Dopefiend",
+    "author": "P. Bourgois",
+    "year": "2009",
+    "publisher": "University of California Press",
+    "isbn": "9780520254985",
+    "source_page": "https://www.ucpress.edu/books/righteous-dopefiend/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520254985.jpg",
+    "saved_path": "assets/covers/righteous-dopefiend.jpg",
+    "bytes": 182839,
+    "dims": [
+      771,
+      1000
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "life-beside-itself",
+    "title": "Life Beside Itself",
+    "author": "Lisa Stevenson",
+    "year": "2014",
+    "publisher": "University of California Press",
+    "isbn": "9780520282940",
+    "source_page": "https://www.ucpress.edu/books/life-beside-itself/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520282940.jpg",
+    "saved_path": "assets/covers/life-beside-itself.jpg",
+    "bytes": 203566,
+    "dims": [
+      666,
+      1000
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "life-and-words",
+    "title": "Life and Words",
+    "author": "Veena Das",
+    "year": "2006",
+    "publisher": "University of California Press",
+    "isbn": "9780520247451",
+    "source_page": "https://www.ucpress.edu/books/life-and-words/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520247451.jpg",
+    "saved_path": "assets/covers/life-and-words.jpg",
+    "bytes": 48951,
+    "dims": [
+      430,
+      648
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "soul-hunters",
+    "title": "Soul Hunters",
+    "author": "Rane Willerslev",
+    "year": "2007",
+    "publisher": "University of California Press",
+    "isbn": "9780520252172",
+    "source_page": "https://www.ucpress.edu/books/soul-hunters/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520252172.jpg",
+    "saved_path": "assets/covers/soul-hunters.jpg",
+    "bytes": 382670,
+    "dims": [
+      1711,
+      2560
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "the-biopolitics-of-beauty",
+    "title": "The Biopolitics of Beauty",
+    "author": "Alvaro Jarrín",
+    "year": "2017",
+    "publisher": "University of California Press",
+    "isbn": "9780520293885",
+    "source_page": "https://www.ucpress.edu/books/the-biopolitics-of-beauty/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520293885.jpg",
+    "saved_path": "assets/covers/the-biopolitics-of-beauty.jpg",
+    "bytes": 157431,
+    "dims": [
+      666,
+      1000
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "love-s-uncertainty",
+    "title": "Love's Uncertainty",
+    "author": "Teresa Kuan（关宜馨）",
+    "year": "2015",
+    "publisher": "University of California Press",
+    "isbn": "9780520283503",
+    "source_page": "https://www.ucpress.edu/books/loves-uncertainty/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520283503.jpg",
+    "saved_path": "assets/covers/love-s-uncertainty.jpg",
+    "bytes": 175292,
+    "dims": [
+      666,
+      1000
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "tsukiji",
+    "title": "Tsukiji",
+    "author": "Theodore C. Bestor",
+    "year": "2004",
+    "publisher": "University of California Press",
+    "isbn": "9780520220249",
+    "source_page": "https://www.ucpress.edu/books/tsukiji/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520220249.jpg",
+    "saved_path": "assets/covers/tsukiji.jpg",
+    "bytes": 69383,
+    "dims": [
+      433,
+      648
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "millennial-monsters",
+    "title": "Millennial Monsters",
+    "author": "Anne Allison",
+    "year": "2006",
+    "publisher": "University of California Press",
+    "isbn": "9780520245655",
+    "source_page": "https://www.ucpress.edu/books/millennial-monsters/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520245655.jpg",
+    "saved_path": "assets/covers/millennial-monsters.jpg",
+    "bytes": 105107,
+    "dims": [
+      432,
+      648
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "the-intimate-economies-of-bangkok",
+    "title": "The Intimate Economies of Bangkok",
+    "author": "Ara Wilson",
+    "year": "2004",
+    "publisher": "University of California Press",
+    "isbn": "9780520239685",
+    "source_page": "https://www.ucpress.edu/books/the-intimate-economies-of-bangkok/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520239685.jpg",
+    "saved_path": "assets/covers/the-intimate-economies-of-bangkok.jpg",
+    "bytes": 130138,
+    "dims": [
+      432,
+      648
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "sonic-socialism",
+    "title": "Sonic Socialism",
+    "author": "Christina Schwenkel",
+    "year": "2025",
+    "publisher": "University of California Press",
+    "isbn": "9780520416192",
+    "source_page": "https://www.ucpress.edu/books/sonic-socialism/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520416192.jpg",
+    "saved_path": "assets/covers/sonic-socialism.jpg",
+    "bytes": 1171999,
+    "dims": [
+      1707,
+      2560
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "when-bodies-remember",
+    "title": "When Bodies Remember",
+    "author": "Didier Fassin",
+    "year": "2007",
+    "publisher": "University of California Press",
+    "isbn": "9780520250277",
+    "source_page": "https://www.ucpress.edu/books/when-bodies-remember/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520250277.jpg",
+    "saved_path": "assets/covers/when-bodies-remember.jpg",
+    "bytes": 93262,
+    "dims": [
+      432,
+      648
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "the-land-of-open-graves",
+    "title": "The Land of Open Graves",
+    "author": "Jason De Léon",
+    "year": "2015",
+    "publisher": "University of California Press",
+    "isbn": "9780520282759",
+    "source_page": "https://www.ucpress.edu/books/the-land-of-open-graves/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520282759.jpg",
+    "saved_path": "assets/covers/the-land-of-open-graves.jpg",
+    "bytes": 1292904,
+    "dims": [
+      1708,
+      2560
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "the-underneath-of-things",
+    "title": "The Underneath of Things",
+    "author": "Mariane C. Ferme",
+    "year": "2001",
+    "publisher": "University of California Press",
+    "isbn": "9780520225435",
+    "source_page": "https://www.ucpress.edu/books/the-underneath-of-things/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520225435.jpg",
+    "saved_path": "assets/covers/the-underneath-of-things.jpg",
+    "bytes": 126433,
+    "dims": [
+      435,
+      648
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "death-without-weeping",
+    "title": "Death Without Weeping",
+    "author": "Nancy Scheper-Hughes",
+    "year": "1992",
+    "publisher": "University of California Press",
+    "isbn": "9780520075375",
+    "source_page": "https://www.ucpress.edu/books/death-without-weeping/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520075375.jpg",
+    "saved_path": "assets/covers/death-without-weeping.jpg",
+    "bytes": 1474685,
+    "dims": [
+      1707,
+      2560
+    ],
+    "status": "ok",
+    "error": null
+  }
+]

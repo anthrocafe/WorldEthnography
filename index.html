@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>World Ethnography</title>
-    <link rel="stylesheet" href="./styles.css?v=35" />
+    <link rel="stylesheet" href="./styles.css?v=49" />
   </head>
   <body>
     <main class="page-shell">
@@ -14,31 +14,42 @@
           <h1 class="intro-draggable" data-intro-key="title">World Ethnography</h1>
           <p class="lede intro-draggable" data-intro-key="lede">自由拖动地球，探索全球各个角落的民族志作品。</p>
           <div class="intro-keyword intro-draggable" data-intro-key="keyword">
-            <label class="intro-keyword-glass" id="keywordSearchGlass" for="keywordSearch">
-              <div class="intro-keyword-field">
-                <span class="intro-keyword-icon" aria-hidden="true">🔍</span>
-                <span class="intro-keyword-width-measure" aria-hidden="true">搜索关键词，定位民族志作品</span>
-                <span class="intro-keyword-hint" aria-hidden="true">搜索关键词，定位民族志作品</span>
-                <span class="intro-keyword-input-mirror" aria-hidden="true"></span>
-                <input
-                  id="keywordSearch"
-                  class="intro-keyword-input"
-                  type="search"
-                  name="keyword"
-                  autocomplete="off"
-                  enterkeyhint="search"
-                  aria-label="按关键词筛选地图上的民族志"
-                />
-              </div>
+            <div class="intro-keyword-row">
+              <label class="intro-keyword-glass" id="keywordSearchGlass" for="keywordSearch">
+                <div class="intro-keyword-field">
+                  <span class="intro-keyword-icon" aria-hidden="true">🔍</span>
+                  <span class="intro-keyword-width-measure" aria-hidden="true">搜索关键词，定位民族志作品</span>
+                  <span class="intro-keyword-hint" aria-hidden="true">搜索关键词，定位民族志作品</span>
+                  <span class="intro-keyword-input-mirror" aria-hidden="true"></span>
+                  <input
+                    id="keywordSearch"
+                    class="intro-keyword-input"
+                    type="search"
+                    name="keyword"
+                    autocomplete="off"
+                    enterkeyhint="search"
+                    aria-label="按关键词筛选地图上的民族志"
+                  />
+                </div>
+                <button
+                  id="keywordSearchClear"
+                  class="intro-keyword-clear"
+                  type="button"
+                  aria-label="清除关键词"
+                >
+                  ×
+                </button>
+              </label>
               <button
-                id="keywordSearchClear"
-                class="intro-keyword-clear"
+                id="keywordSearchSimilarity"
+                class="intro-keyword-similarity"
                 type="button"
-                aria-label="清除关键词"
+                hidden
+                aria-label="展示地理距离最远的两本匹配民族志"
               >
-                ×
+                遥远的相似性
               </button>
-            </label>
+            </div>
           </div>
         </div>
       </section>
@@ -64,31 +75,52 @@
         </p>
       </div>
 
+      <div id="distantSimilarityLayer" class="distant-similarity-layer is-hidden" aria-hidden="true">
+        <button
+          id="distantSimilarityClose"
+          class="distant-similarity-close"
+          type="button"
+          aria-label="关闭遥远的相似性"
+        >
+          ×
+        </button>
+        <p class="distant-similarity-caption" id="distantSimilarityCaption"></p>
+        <div class="distant-similarity-pair" id="distantSimilarityPair"></div>
+      </div>
+
       <aside id="bookCard" class="book-card is-hidden" aria-live="polite">
-        <div class="book-card-loc-wrap" aria-label="田野地点">
-          <div class="book-card-loc-row">
-            <p class="book-card-location book-card-location-zh" id="bookLocationZh"></p>
-            <div class="book-card-actions">
-              <div class="book-card-nav is-hidden" id="bookCardNav" aria-label="切换同地点民族志">
-                <button class="book-card-nav-btn" id="bookCardPrev" type="button" aria-label="上一本民族志">
-                  ‹
-                </button>
-                <span class="book-card-nav-count" id="bookCardCount"></span>
-                <button class="book-card-nav-btn" id="bookCardNext" type="button" aria-label="下一本民族志">
-                  ›
+        <div class="book-card-shell">
+          <figure class="book-card-cover" id="bookCardCoverWrap" hidden aria-hidden="true">
+            <img id="bookCardCover" class="book-card-cover-img" alt="" loading="lazy" />
+          </figure>
+          <div class="book-card-panel">
+            <div class="book-card-loc-wrap" aria-label="田野地点">
+              <div class="book-card-loc-row">
+                <p class="book-card-location book-card-location-zh" id="bookLocationZh"></p>
+                <div class="book-card-actions">
+                  <div class="book-card-nav is-hidden" id="bookCardNav" aria-label="切换同地点民族志">
+                    <button class="book-card-nav-btn" id="bookCardPrev" type="button" aria-label="上一本民族志">
+                      ‹
+                    </button>
+                    <span class="book-card-nav-count" id="bookCardCount"></span>
+                    <button class="book-card-nav-btn" id="bookCardNext" type="button" aria-label="下一本民族志">
+                      ›
+                    </button>
+                  </div>
+                </div>
+                <button id="bookCardClose" class="book-card-close" type="button" aria-label="关闭卡片">
+                  ×
                 </button>
               </div>
+              <p class="book-card-location book-card-location-en" id="bookLocationEn"></p>
             </div>
-            <button id="bookCardClose" class="book-card-close" type="button" aria-label="关闭卡片">
-              ×
-            </button>
+            <p class="book-card-title book-card-title-zh" id="bookTitleZh"></p>
+            <p class="book-card-title-en" id="bookTitleEn" aria-label="Subtitle in English"></p>
+            <p class="book-card-meta" id="bookMeta"></p>
+            <p class="book-card-summary" id="bookSummary"></p>
           </div>
-          <p class="book-card-location book-card-location-en" id="bookLocationEn"></p>
+          <p class="book-card-bookmark-hint" id="bookCardBookmarkHint" hidden>点击展开书签</p>
         </div>
-        <p class="book-card-title book-card-title-zh" id="bookTitleZh"></p>
-        <p class="book-card-title-en" id="bookTitleEn" aria-label="Subtitle in English"></p>
-        <p class="book-card-meta" id="bookMeta"></p>
-        <p class="book-card-summary" id="bookSummary"></p>
       </aside>
 
       <div class="drag-hint" aria-hidden="true">
@@ -100,6 +132,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
     <script src="./books-data.js?v=29"></script>
-    <script src="./globe.js?v=80"></script>
+    <script src="./globe.js?v=104"></script>
   </body>
 </html>

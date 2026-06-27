@@ -135,6 +135,137 @@ const FOCUS_COVER_SKIP_GROUP_KEYS_BY_BOOK_ID = {
 /** Keep Zh + En titles on one line; widen card beyond default focus-split max when needed. */
 const BOOK_CARD_TITLE_SINGLE_LINE_IDS = new Set(["ethnography-72"]);
 
+/** Default-view bookmark peek: slugs with a local JPEG in assets/covers/. */
+const COVER_SLUGS_WITH_FILES = new Set([
+  "a-disability-of-the-soul",
+  "a-heart-for-the-work",
+  "adopted-territory",
+  "after-the-revolution",
+  "age-of-wild-ghosts",
+  "algeria-in-france",
+  "alien-ocean",
+  "an-enchanted-modern",
+  "animal-intimacies",
+  "at-home-in-the-world",
+  "bazaar-politics",
+  "becoming-sinners",
+  "beyond-nature-and-culture",
+  "border-capitalism-disrupted",
+  "border-work",
+  "cannibal-metaphysics",
+  "cheap-meat",
+  "cosmologies-of-credit",
+  "creative-reckonings",
+  "death-without-weeping",
+  "decolonizing-extinction",
+  "depression-in-japan",
+  "designs-for-the-pluriverse",
+  "dreams-that-matter",
+  "earth-beings",
+  "enforcing-order",
+  "everyday-conversions",
+  "everything-was-forever-until-it-was-no-more",
+  "evicted-from-eternity",
+  "facts-on-the-ground",
+  "flight-ways",
+  "fresh-fruit-broken-bodies",
+  "friction",
+  "gathering-medicines",
+  "ghetto-at-the-center-of-the-world",
+  "global-body-shopping",
+  "global-cinderellas",
+  "governing-educational-desire",
+  "healing-labor",
+  "how-forests-think",
+  "hunters-pastoralists-and-ranchers",
+  "hygiene-sociality-and-culture-in-contemporary-rural-china",
+  "improvising-medicine",
+  "in-the-shadow-of-the-palms",
+  "in-the-time-of-oil",
+  "intimate-disconnections",
+  "islamic-modern",
+  "kinshasa",
+  "knot-of-the-soul",
+  "laboratory-life",
+  "leviathans-at-the-gold-mine",
+  "life-and-death-on-mt-everest",
+  "life-and-words",
+  "life-beside-itself",
+  "life-exposed",
+  "life-in-debt",
+  "living-with-herds",
+  "lost-people-magic-and-the-legacy-of-slavery-in-madagascar",
+  "love-s-uncertainty",
+  "made-in-china",
+  "marginal-gains",
+  "memories-of-the-slave-trade",
+  "mien-relations",
+  "millennial-monsters",
+  "moral-laboratories",
+  "nostalgia-for-the-future",
+  "on-the-edge-of-the-global",
+  "on-the-move-for-love",
+  "other-worldly",
+  "passage-to-manhood",
+  "passionate-uprisings",
+  "pathologies-of-power",
+  "peripheral-visions",
+  "political-spiritualities",
+  "politics-of-piety",
+  "porkopolis",
+  "private-life-under-socialism",
+  "reverse-anthropology",
+  "righteous-dopefiend",
+  "rights-refused",
+  "shaving-the-beasts",
+  "society-of-others",
+  "songs-for-dead-parents",
+  "sonic-socialism",
+  "soul-hunters",
+  "south-koreans-in-the-debt-crisis",
+  "spirits-of-modernity",
+  "spirits-of-resistance-and-capitalist-discipline-factory-women-in-malaysia",
+  "strangers-in-the-city",
+  "the-anti-politics-machine",
+  "the-anxieties-of-mobility",
+  "the-biopolitics-of-beauty",
+  "the-body-multiple",
+  "the-falling-sky",
+  "the-gender-of-the-gift",
+  "the-intimate-economies-of-bangkok",
+  "the-land-of-open-graves",
+  "the-make-believe-space",
+  "the-method-of-hope",
+  "the-moral-neoliberal",
+  "the-mushroom-at-the-end-of-the-world",
+  "the-new-woman-in-uzbekistan",
+  "the-paper-road",
+  "the-pastoral-clinic",
+  "the-perils-of-belonging",
+  "the-performance-of-human-rights-in-morocco",
+  "the-reckoning-of-pluralism",
+  "the-reindeer-people",
+  "the-republic-of-therapy",
+  "the-subject-of-virtue",
+  "the-traffic-in-hierarchy",
+  "the-underneath-of-things",
+  "the-vanishing-hectare",
+  "the-war-machines",
+  "the-will-to-improve",
+  "the-will-to-live",
+  "transcending-boundaries",
+  "truth-in-motion",
+  "tsukiji",
+  "twice-dead",
+  "ungovernable-life",
+  "veiled-sentiments",
+  "vita",
+  "warring-souls",
+  "waste-siege",
+  "when-bodies-remember",
+  "yearnings-in-the-meantime",
+]);
+
 const state = {
   width: 0,
   height: 0,
@@ -174,12 +305,15 @@ const state = {
   coverLayoutReady: false,
   cardSuppressionBlend: 0,
   coverSplitBlend: 0,
+  bookmarkExpandBlend: 0,
+  bookmarkExpandTarget: 0,
   activeGlobePointerId: null,
   searchFocused: false,
   searchQuery: "",
   keywordFilterBlend: 0,
   keywordMatchReveal: 0,
   keywordRevealKey: "",
+  distantSimilarityOpen: false,
 };
 let landRings = [];
 let landReady = false;
@@ -420,6 +554,332 @@ function searchPinsActive() {
   return state.searchFocused || state.searchQuery.length > 0;
 }
 
+function booksMatchingSearch() {
+  const q = state.searchQuery;
+  if (!q.length) return [];
+  return books.filter((book) => bookMatchesSearchQuery(book, q));
+}
+
+function findFarthestBookPair(matchedBooks) {
+  if (!matchedBooks || matchedBooks.length < 2) return null;
+
+  let maxDist = -1;
+  let bookA = null;
+  let bookB = null;
+
+  for (let i = 0; i < matchedBooks.length; i += 1) {
+    for (let j = i + 1; j < matchedBooks.length; j += 1) {
+      const dist = geoDistanceKm(
+        { lat: matchedBooks[i].lat, lon: matchedBooks[i].lon },
+        { lat: matchedBooks[j].lat, lon: matchedBooks[j].lon }
+      );
+      if (dist > maxDist) {
+        maxDist = dist;
+        bookA = matchedBooks[i];
+        bookB = matchedBooks[j];
+      }
+    }
+  }
+
+  if (!bookA || !bookB) return null;
+  return { books: [bookA, bookB], distanceKm: maxDist };
+}
+
+function escapeHtml(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function highlightSearchTermsInText(text, normalizedQuery) {
+  const raw = String(text ?? "");
+  if (!normalizedQuery || !raw.trim()) return escapeHtml(raw);
+
+  const tokens = normalizedQuery.split(" ").filter(Boolean);
+  if (!tokens.length) return escapeHtml(raw);
+
+  let result = escapeHtml(raw);
+  for (const token of tokens) {
+    const re = new RegExp(`(${token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+    result = result.replace(re, '<mark class="search-term-highlight">$1</mark>');
+  }
+  return result;
+}
+
+function formatDistanceKmLabel(km) {
+  const rounded = Math.round(Number(km) || 0);
+  return `${rounded.toLocaleString("zh-CN")} 公里`;
+}
+
+function bookCardLocationZh(book) {
+  return book.sourceField || [book.countryOrRegion, book.location].filter(Boolean).join("·");
+}
+
+const DISTANT_SIMILARITY = {
+  minLeftGap: 40,
+  panelPad: 50,
+  minCoverW: 148,
+  maxCoverW: 228,
+  panelMin: 154,
+};
+
+let distantSimilarityCardMeasureEl = null;
+
+function computeDistantSimilarityMetrics(book, mobile = state.width <= 720) {
+  const aspect = book ? coverAspectForBook(book) : BOOK_COVER_ASPECT_DEFAULT;
+  const { zh } = splitTranslatedTitle(book?.title || "");
+  const contentW = Math.ceil(measureFocusBookmarkTextWidth(focusBookmarkTitleFont(), zh));
+  const panelMin = mobile ? 140 : DISTANT_SIMILARITY.panelMin;
+  const minLeftGap = DISTANT_SIMILARITY.minLeftGap;
+  const minCoverW = mobile ? 132 : DISTANT_SIMILARITY.minCoverW;
+  const maxCoverW = mobile ? 168 : DISTANT_SIMILARITY.maxCoverW;
+  const panelW = Math.max(panelMin, Math.ceil(contentW + DISTANT_SIMILARITY.panelPad));
+  const panelH = book ? measureFocusBookmarkPanelHeight(book, panelW) : 90;
+  let coverW = Math.max(panelW + minLeftGap, minCoverW);
+  coverW = Math.min(coverW, maxCoverW);
+  const finalPanelW = Math.min(panelW, coverW);
+  const panelLeft = coverW - finalPanelW;
+  const coverH = coverW / aspect;
+  return {
+    coverW,
+    coverH,
+    panelW: finalPanelW,
+    panelLeft,
+    tabH: panelH,
+    shellH: coverH + panelH,
+  };
+}
+
+function ensureDistantSimilarityCardMeasureEl() {
+  if (distantSimilarityCardMeasureEl) return distantSimilarityCardMeasureEl;
+  const el = document.createElement("div");
+  el.className = "distant-similarity-panel distant-similarity-panel--measure";
+  el.setAttribute("aria-hidden", "true");
+  document.body.appendChild(el);
+  distantSimilarityCardMeasureEl = el;
+  return el;
+}
+
+function measureDistantSimilarityExpandedCardWidth(book, coverW, normalizedQuery) {
+  const mobile = state.width <= 720;
+  const margin = 28;
+  const pairGap = 72;
+  const maxOuter = mobile
+    ? Math.max(240, state.width - margin * 2)
+    : Math.min(380, Math.max(260, (Math.min(920, state.width) - pairGap) / 2 - margin));
+  const minW = Math.max(coverW, mobile ? 220 : 260);
+
+  const el = ensureDistantSimilarityCardMeasureEl();
+  el.innerHTML = `<span class="distant-similarity-panel-body">${buildDistantSimilarityCardHtml(book, normalizedQuery)}</span>`;
+  el.style.width = "auto";
+  el.style.maxWidth = `${maxOuter}px`;
+  const contentW = Math.ceil(el.getBoundingClientRect().width);
+  return clamp(Math.max(minW, contentW + 12), minW, maxOuter);
+}
+
+function applyDistantSimilaritySlotLayout(slot, book, normalizedQuery = state.searchQuery) {
+  const m = computeDistantSimilarityMetrics(book);
+  const cardW = measureDistantSimilarityExpandedCardWidth(book, m.coverW, normalizedQuery);
+  const expanded = slot.classList.contains("is-expanded");
+  const slotW = expanded ? Math.max(m.coverW, cardW) : m.coverW;
+  const coverOffset = (slotW - m.coverW) / 2;
+
+  slot.style.setProperty("--ds-slot-w", `${slotW}px`);
+  slot.style.setProperty("--ds-cover-w", `${m.coverW}px`);
+  slot.style.setProperty("--ds-cover-h", `${m.coverH}px`);
+  slot.style.setProperty("--ds-tab-h", `${m.tabH}px`);
+  slot.style.setProperty("--ds-shell-h", `${m.shellH}px`);
+  slot.style.setProperty("--ds-panel-w", `${m.panelW}px`);
+  slot.style.setProperty("--ds-panel-left", `${coverOffset + m.panelLeft}px`);
+  slot.style.setProperty("--ds-card-w", `${cardW}px`);
+  slot.style.setProperty("--ds-card-left", `${(slotW - cardW) / 2}px`);
+}
+
+function buildDistantSimilarityCardHtml(book, normalizedQuery) {
+  const { zh, en } = splitTranslatedTitle(book.title);
+  const locZh = bookCardLocationZh(book);
+  const locEn = book.locationEn || fallbackEnglishLocation(book);
+  const meta = `${book.author} · ${book.year}\n${resolvePublisherLabel(book.publisher)}`;
+  const summary = formatSummaryForCard(book.summary);
+
+  return `
+    <button class="distant-similarity-card-close" type="button" aria-label="收起卡片">×</button>
+    <p class="distant-similarity-card-loc-zh">${highlightSearchTermsInText(locZh, normalizedQuery)}</p>
+    <p class="distant-similarity-card-loc-en">${highlightSearchTermsInText(locEn, normalizedQuery)}</p>
+    <p class="distant-similarity-card-title-zh">${highlightSearchTermsInText(zh, normalizedQuery)}</p>
+    ${
+      en
+        ? `<p class="distant-similarity-card-title-en">${highlightSearchTermsInText(en, normalizedQuery)}</p>`
+        : ""
+    }
+    <p class="distant-similarity-card-meta">${highlightSearchTermsInText(meta, normalizedQuery)}</p>
+    <p class="distant-similarity-card-summary">${highlightSearchTermsInText(summary, normalizedQuery)}</p>
+  `;
+}
+
+function createDistantSimilaritySlot(book, normalizedQuery) {
+  const slot = document.createElement("div");
+  slot.className = "distant-similarity-slot";
+  slot.dataset.bookId = book.id;
+
+  const loc = document.createElement("p");
+  loc.className = "distant-similarity-loc";
+  loc.textContent = bookCardLocationZh(book);
+
+  const stage = document.createElement("div");
+  stage.className = "distant-similarity-stage";
+
+  const bookmarkBtn = document.createElement("button");
+  bookmarkBtn.type = "button";
+  bookmarkBtn.className = "distant-similarity-bookmark";
+  const titleZh = splitTranslatedTitle(book.title).zh || book.title;
+  bookmarkBtn.setAttribute("aria-label", `${titleZh}，点击展开书签`);
+  bookmarkBtn.setAttribute("aria-expanded", "false");
+
+  const shell = document.createElement("span");
+  shell.className = "distant-similarity-shell";
+
+  const cover = document.createElement("span");
+  cover.className = "distant-similarity-cover";
+  const slug = resolveCoverSlugForBook(book);
+  let coverImg = null;
+  if (slug && COVER_SLUGS_WITH_FILES.has(slug)) {
+    coverImg = document.createElement("img");
+    coverImg.src = `./assets/covers/${slug}.jpg`;
+    coverImg.alt = titleZh;
+    coverImg.loading = "eager";
+    cover.appendChild(coverImg);
+  } else {
+    cover.classList.add("distant-similarity-cover--placeholder");
+    cover.innerHTML = highlightSearchTermsInText(titleZh, normalizedQuery);
+  }
+
+  shell.appendChild(cover);
+  bookmarkBtn.appendChild(shell);
+
+  const panel = document.createElement("div");
+  panel.className = "distant-similarity-panel";
+
+  const peek = document.createElement("span");
+  peek.className = "distant-similarity-panel-peek distant-similarity-panel-title-zh";
+  peek.innerHTML = highlightSearchTermsInText(titleZh, normalizedQuery);
+
+  const body = document.createElement("div");
+  body.className = "distant-similarity-panel-body";
+  body.innerHTML = buildDistantSimilarityCardHtml(book, normalizedQuery);
+  body.setAttribute("aria-hidden", "true");
+
+  panel.appendChild(peek);
+  panel.appendChild(body);
+  stage.appendChild(bookmarkBtn);
+  stage.appendChild(panel);
+
+  const relayout = () => applyDistantSimilaritySlotLayout(slot, book, normalizedQuery);
+  if (coverImg) {
+    const onCoverLoad = () => {
+      if (rememberCoverAspectFromImage(coverImg)) relayout();
+    };
+    if (coverImg.complete && coverImg.naturalWidth) onCoverLoad();
+    else coverImg.addEventListener("load", onCoverLoad, { once: true });
+  }
+  relayout();
+
+  const setExpanded = (expanded) => {
+    if (expanded) {
+      if (slot.classList.contains("is-expanded")) return;
+      slot.classList.add("is-expanded");
+      bookmarkBtn.setAttribute("aria-expanded", "true");
+      body.setAttribute("aria-hidden", "false");
+      relayout();
+      return;
+    }
+    slot.classList.remove("is-expanded");
+    bookmarkBtn.setAttribute("aria-expanded", "false");
+    body.setAttribute("aria-hidden", "true");
+    relayout();
+  };
+
+  bookmarkBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (slot.classList.contains("is-expanded")) return;
+    setExpanded(true);
+  });
+
+  body.querySelector(".distant-similarity-card-close")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    setExpanded(false);
+  });
+
+  panel.addEventListener("click", (e) => e.stopPropagation());
+
+  slot.appendChild(loc);
+  slot.appendChild(stage);
+  return slot;
+}
+
+function renderDistantSimilarityPair({ books: pairBooks, distanceKm }) {
+  if (!distantSimilarityPair || !distantSimilarityCaption) return;
+
+  distantSimilarityPair.innerHTML = "";
+  const q = state.searchQuery;
+  const queryLabel = keywordSearch?.value?.trim() || q;
+
+  distantSimilarityCaption.innerHTML = `搜索「<mark class="search-term-highlight">${escapeHtml(queryLabel)}</mark>」的匹配作品中，地理距离最远的一对相距约 ${formatDistanceKmLabel(distanceKm)}`;
+
+  for (const book of pairBooks) {
+    distantSimilarityPair.appendChild(createDistantSimilaritySlot(book, q));
+  }
+}
+
+function openDistantSimilarity() {
+  const matched = booksMatchingSearch();
+  const result = findFarthestBookPair(matched);
+  if (!result || !distantSimilarityLayer) return;
+
+  closeBookCard();
+  renderDistantSimilarityPair(result);
+  state.distantSimilarityOpen = true;
+  distantSimilarityLayer.classList.remove("is-hidden");
+  distantSimilarityLayer.setAttribute("aria-hidden", "false");
+  document.body.classList.add("is-distant-similarity-open");
+
+  if (prefersReducedMotion) {
+    distantSimilarityLayer.classList.add("is-visible");
+  } else {
+    requestAnimationFrame(() => {
+      distantSimilarityLayer.classList.add("is-visible");
+    });
+  }
+}
+
+function closeDistantSimilarity() {
+  if (!distantSimilarityLayer || !state.distantSimilarityOpen) return;
+
+  state.distantSimilarityOpen = false;
+  distantSimilarityLayer.classList.remove("is-visible");
+  document.body.classList.remove("is-distant-similarity-open");
+
+  const finish = () => {
+    if (state.distantSimilarityOpen) return;
+    distantSimilarityLayer.classList.add("is-hidden");
+    distantSimilarityLayer.setAttribute("aria-hidden", "true");
+    if (distantSimilarityPair) distantSimilarityPair.innerHTML = "";
+    if (distantSimilarityCaption) distantSimilarityCaption.textContent = "";
+  };
+
+  if (prefersReducedMotion) finish();
+  else window.setTimeout(finish, 420);
+}
+
+function syncDistantSimilarityButton() {
+  if (!keywordSearchSimilarity) return;
+  const matched = booksMatchingSearch();
+  const show = state.searchQuery.length > 0 && matched.length >= 2 && !state.focusMode;
+  keywordSearchSimilarity.hidden = !show;
+}
+
 const books = (window.ETHNOGRAPHY_BOOKS || []).map((book) => ({
   ...book,
   vector: sphericalToVector(book.lon, book.lat),
@@ -454,6 +914,9 @@ const bookTitleZh = document.querySelector("#bookTitleZh");
 const bookTitleEn = document.querySelector("#bookTitleEn");
 const bookMeta = document.querySelector("#bookMeta");
 const bookSummary = document.querySelector("#bookSummary");
+const bookCardCoverWrap = document.querySelector("#bookCardCoverWrap");
+const bookCardCover = document.querySelector("#bookCardCover");
+const bookCardBookmarkHint = document.querySelector("#bookCardBookmarkHint");
 
 const OFFICIAL_PUBLISHER_NAMES = {
   Princeton: "Princeton University Press",
@@ -492,6 +955,196 @@ function splitTranslatedTitle(displayTitle) {
   const stripBookQuotes = (value) => String(value || "").replace(/[《》]/g, "").trim();
   if (!match) return { zh: stripBookQuotes(trimmed), en: "" };
   return { zh: stripBookQuotes(match[1]), en: englishMainTitleForCard(match[2].trim()) };
+}
+
+function slugifyCoverTitle(en) {
+  return String(en || "")
+    .toLowerCase()
+    .replace(/[\u2018\u2019\u201c\u201d]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function englishTitleForCover(displayTitle) {
+  const trimmed = String(displayTitle || "").trim();
+  const match = /^[\s\S]+?\s*[（(]([\s\S]+)[）)]\s*$/.exec(trimmed);
+  if (match) return match[1].trim();
+  const nested = /\((.*)\)/.exec(trimmed);
+  return nested ? nested[1] : trimmed;
+}
+
+function resolveCoverSlugForBook(book) {
+  if (!book) return "";
+  return COVER_SLUG_BY_BOOK_ID[book.id] || slugifyCoverTitle(englishTitleForCover(book.title));
+}
+
+function bookSupportsBookmarkCover(book) {
+  if (!book) return false;
+  const slug = resolveCoverSlugForBook(book);
+  return Boolean(slug && COVER_SLUGS_WITH_FILES.has(slug));
+}
+
+const BOOK_COVER_ASPECT_DEFAULT = 2 / 3;
+const coverAspectBySlug = new Map();
+
+function isBookmarkCardOpen() {
+  return Boolean(bookCard && bookCard.classList.contains("book-card--bookmark") && !bookCard.classList.contains("is-hidden"));
+}
+
+function isBookmarkCardExpanded() {
+  return isBookmarkCardOpen() && state.bookmarkExpandTarget > 0.5;
+}
+
+function slugFromCoverSrc(src) {
+  const match = /\/([^/?#]+)\.jpg(?:[?#]|$)/i.exec(String(src || ""));
+  return match ? match[1] : "";
+}
+
+function rememberCoverAspectFromImage(img) {
+  const slug = slugFromCoverSrc(img?.getAttribute("src") || img?.currentSrc || "");
+  if (!slug || !img?.naturalWidth || !img?.naturalHeight) return false;
+  coverAspectBySlug.set(slug, img.naturalWidth / img.naturalHeight);
+  return true;
+}
+
+function coverAspectForBook(book) {
+  const slug = resolveCoverSlugForBook(book);
+  return (slug && coverAspectBySlug.get(slug)) || BOOK_COVER_ASPECT_DEFAULT;
+}
+
+function bookmarkCoverAspect() {
+  const bookId = bookCard?.dataset?.bookId;
+  const book = bookId ? books.find((item) => item.id === bookId) : null;
+  return coverAspectForBook(book);
+}
+
+function syncBookmarkCoverLayoutAfterLoad() {
+  if (!bookCardCover || !rememberCoverAspectFromImage(bookCardCover)) return;
+  if (!bookCard?.classList.contains("book-card--bookmark") || bookCard.classList.contains("is-hidden")) return;
+  syncBookCardLayout();
+  if (isBookmarkCardExpanded()) positionBookmarkExpandedBookCard();
+  else syncBookmarkCardPosition();
+}
+
+function bindBookmarkCoverLoadSync() {
+  if (!bookCardCover) return;
+  const onLoad = () => syncBookmarkCoverLayoutAfterLoad();
+  if (bookCardCover.complete && bookCardCover.naturalWidth) onLoad();
+  else bookCardCover.addEventListener("load", onLoad, { once: true });
+}
+
+function resetBookmarkCardState() {
+  state.bookmarkExpandBlend = 0;
+  state.bookmarkExpandTarget = 0;
+  invalidateBookmarkPanelMeasureCache();
+  if (!bookCard) return;
+  bookCard.classList.remove("book-card--bookmark", "is-bookmark-expanded", "is-bookmark-pulling");
+  bookCard.style.removeProperty("--bookmark-expand");
+  if (bookCardBookmarkHint) bookCardBookmarkHint.hidden = true;
+  if (bookCardCoverWrap) bookCardCoverWrap.hidden = true;
+  if (bookCardCover) bookCardCover.classList.remove("is-cover-fade-out", "is-cover-fade-in");
+}
+
+function crossfadeBookCardCover(newSrc) {
+  if (!bookCardCover || prefersReducedMotion) {
+    if (bookCardCover) {
+      bookCardCover.src = newSrc;
+      bindBookmarkCoverLoadSync();
+    }
+    return;
+  }
+  if ((bookCardCover.getAttribute("src") || "") === newSrc) return;
+
+  bookCardCover.classList.remove("is-cover-fade-in");
+  bookCardCover.classList.add("is-cover-fade-out");
+
+  const swap = () => {
+    bookCardCover.removeEventListener("transitionend", swap);
+    const preload = new Image();
+    preload.onload = () => {
+      bookCardCover.src = newSrc;
+      bookCardCover.classList.remove("is-cover-fade-out");
+      void bookCardCover.offsetWidth;
+      bookCardCover.classList.add("is-cover-fade-in");
+      bindBookmarkCoverLoadSync();
+      const cleanup = () => {
+        bookCardCover.removeEventListener("transitionend", cleanup);
+        bookCardCover.classList.remove("is-cover-fade-in");
+      };
+      bookCardCover.addEventListener("transitionend", cleanup, { once: true });
+    };
+    preload.onerror = () => {
+      bookCardCover.src = newSrc;
+      bookCardCover.classList.remove("is-cover-fade-out", "is-cover-fade-in");
+      bindBookmarkCoverLoadSync();
+    };
+    preload.src = newSrc;
+  };
+
+  bookCardCover.addEventListener("transitionend", swap, { once: true });
+}
+
+function setBookCardCoverImage(book, { animate = false } = {}) {
+  if (!bookCardCover || !bookCardCoverWrap) return;
+  const slug = resolveCoverSlugForBook(book);
+  if (!slug) {
+    bookCardCoverWrap.hidden = true;
+    return;
+  }
+  const newSrc = `./assets/covers/${slug}.jpg`;
+  bookCardCover.alt = splitTranslatedTitle(book.title).zh || book.title;
+  bookCardCoverWrap.hidden = false;
+
+  const currentSrc = bookCardCover.getAttribute("src") || "";
+  if (!animate || !currentSrc || currentSrc === newSrc) {
+    bookCardCover.classList.remove("is-cover-fade-out", "is-cover-fade-in");
+    bookCardCover.src = newSrc;
+    bindBookmarkCoverLoadSync();
+    return;
+  }
+  crossfadeBookCardCover(newSrc);
+}
+
+function setBookmarkExpandState(expanded, { immediate = false, animatePull = false } = {}) {
+  if (expanded) {
+    invalidateBookmarkPanelMeasureCache();
+    state.bookmarkExpandTarget = 1;
+    if (immediate || prefersReducedMotion) {
+      state.bookmarkExpandBlend = 1;
+      bookCard.style.setProperty("--bookmark-expand", "1");
+    }
+    bookCard.classList.add("is-bookmark-expanded");
+    if (animatePull) {
+      bookCard.classList.add("is-bookmark-pulling");
+      window.setTimeout(() => {
+        bookCard.classList.remove("is-bookmark-pulling");
+      }, prefersReducedMotion ? 120 : 760);
+    }
+    bookCard.dataset.anchorMode = "bookmark-expanded";
+  } else {
+    state.bookmarkExpandTarget = 0;
+    state.bookmarkExpandBlend = 0;
+    bookCard.classList.remove("is-bookmark-expanded", "is-bookmark-pulling");
+    bookCard.style.setProperty("--bookmark-expand", "0");
+    delete bookCard.dataset.anchorMode;
+  }
+}
+
+function applyBookmarkCardMode(book, { animateCover = false } = {}) {
+  if (!bookSupportsBookmarkCover(book)) {
+    resetBookmarkCardState();
+    return false;
+  }
+  bookCard.classList.add("book-card--bookmark");
+  setBookCardCoverImage(book, { animate: animateCover });
+  if (bookCardBookmarkHint) bookCardBookmarkHint.hidden = true;
+  return true;
+}
+
+function expandBookmarkCard() {
+  if (!isBookmarkCardOpen() || isBookmarkCardExpanded()) return;
+  setBookmarkExpandState(true, { animatePull: true });
+  syncBookCardLayout();
 }
 
 function fallbackEnglishLocation(book) {
@@ -610,10 +1263,21 @@ function syncBookCardLayout() {
   const hPadViewport = window.matchMedia("(max-width: 720px)").matches ? 18 : 24;
   const focusSplit = bookCard.classList.contains("book-card--focus-split");
   const focusMobile = bookCard.classList.contains("book-card--focus-mobile");
+  const bookmarkExpanded = bookCard.classList.contains("book-card--bookmark") && isBookmarkCardExpanded();
+
+  if (bookCard.classList.contains("book-card--bookmark")) {
+    syncBookmarkCardMetrics();
+    if (!bookmarkExpanded) {
+      bookCard.classList.remove("book-card--tight", "book-card--tighter");
+      return;
+    }
+    bookCard.classList.remove("book-card--tight", "book-card--tighter");
+    return;
+  }
 
   let maxOuter = focusMobile
     ? Math.min(420, Math.max(280, Math.round(window.innerWidth - 32)))
-    : focusSplit
+    : focusSplit || bookmarkExpanded
       ? Math.min(520, Math.max(300, Math.round(window.innerWidth * 0.54 - 40)))
       : Math.min(760, window.innerWidth - hPadViewport * 2);
 
@@ -904,6 +1568,7 @@ function beginRegionFocus(regionId) {
   const region = REGION_FOCUS[regionId];
   if (!region) return;
 
+  closeDistantSimilarity();
   closeBookCard();
   state.selectedBookId = null;
   state.selectedSiteIndex = 0;
@@ -936,6 +1601,7 @@ function beginRegionFocus(regionId) {
     syncBodyFocusClass();
     buildRegionCoverLayer();
   }
+  syncDistantSimilarityButton();
 }
 
 function exitRegionFocus() {
@@ -972,6 +1638,7 @@ function exitRegionFocus() {
     applyLayoutFromFocusBlend();
     syncBodyFocusClass();
   }
+  syncDistantSimilarityButton();
 }
 
 function clearFocusCameraTarget() {
@@ -1003,6 +1670,135 @@ function regionCoverLayerBuildSignature() {
   return `${state.focusRegionId}|${state.searchQuery}`;
 }
 
+const FOCUS_BOOKMARK = {
+  sizeMul: 0.8,
+  minLeftGap: 40,
+  panelPad: 50,
+  titleFontSize: 15,
+};
+
+let focusBookmarkMeasureCtx = null;
+let focusBookmarkPanelMeasureEl = null;
+
+function focusBookmarkTitleFont() {
+  return `700 ${FOCUS_BOOKMARK.titleFontSize}px Georgia, "Times New Roman", serif`;
+}
+
+function measureFocusBookmarkTextWidth(font, text) {
+  if (!focusBookmarkMeasureCtx) {
+    focusBookmarkMeasureCtx = document.createElement("canvas").getContext("2d");
+  }
+  focusBookmarkMeasureCtx.font = font;
+  return focusBookmarkMeasureCtx.measureText(String(text || "").trim()).width;
+}
+
+function focusBookmarkPanelText(book) {
+  const { zh } = splitTranslatedTitle(book?.title || "");
+  return { zh };
+}
+
+function ensureFocusBookmarkPanelMeasureEl() {
+  if (focusBookmarkPanelMeasureEl) return focusBookmarkPanelMeasureEl;
+  const panel = document.createElement("div");
+  panel.className = "region-cover-bookmark-panel region-cover-bookmark-panel--measure";
+  panel.innerHTML = `<span class="region-cover-bookmark-title-zh"></span>`;
+  panel.setAttribute("aria-hidden", "true");
+  document.body.appendChild(panel);
+  focusBookmarkPanelMeasureEl = panel;
+  return panel;
+}
+
+function measureFocusBookmarkPanelWidth(book) {
+  const { zh } = focusBookmarkPanelText(book);
+  return Math.ceil(measureFocusBookmarkTextWidth(focusBookmarkTitleFont(), zh));
+}
+
+function measureFocusBookmarkPanelHeight(book, panelW) {
+  const panel = ensureFocusBookmarkPanelMeasureEl();
+  const { zh } = focusBookmarkPanelText(book);
+  panel.querySelector(".region-cover-bookmark-title-zh").textContent = zh;
+  panel.style.width = `${Math.max(1, Math.round(panelW))}px`;
+  return Math.ceil(panel.getBoundingClientRect().height);
+}
+
+function bookForCoverBtn(btn) {
+  const id = btn?.dataset?.bookId;
+  return id ? books.find((item) => item.id === id) : null;
+}
+
+function computeFocusBookmarkMetrics(book, mobile = isMobileFocusCoverLayout()) {
+  const aspect = book ? coverAspectForBook(book) : BOOK_COVER_ASPECT_DEFAULT;
+  const panelMin = mobile ? 154 : 188;
+  const panelPad = FOCUS_BOOKMARK.panelPad;
+  const minLeftGap = FOCUS_BOOKMARK.minLeftGap;
+  const minCoverW = mobile ? 146 : 190;
+  const contentW = book ? measureFocusBookmarkPanelWidth(book) : 0;
+  const panelW = Math.max(panelMin, Math.ceil(contentW + panelPad));
+  const panelH = book ? measureFocusBookmarkPanelHeight(book, panelW) : 90;
+  const coverW = Math.max(panelW + minLeftGap, minCoverW);
+  const finalPanelW = Math.min(panelW, coverW);
+  const panelLeft = coverW - finalPanelW;
+  const coverH = coverW / aspect;
+  return { coverW, coverH, panelW: finalPanelW, panelLeft, tabH: panelH };
+}
+
+function applyFocusBookmarkLayoutVars(btn, metrics, scale = 1) {
+  const s = (Number(scale) || 1) * FOCUS_BOOKMARK.sizeMul;
+  btn.style.setProperty("--region-bookmark-tab", `${metrics.tabH * s}px`);
+  btn.style.setProperty("--region-bookmark-panel-w", `${metrics.panelW * s}px`);
+  btn.style.setProperty("--region-bookmark-panel-left", `${metrics.panelLeft * s}px`);
+  return {
+    width: metrics.coverW * s,
+    height: metrics.coverH * s + metrics.tabH * s,
+    imageWidth: metrics.coverW * s,
+    imageHeight: metrics.coverH * s,
+  };
+}
+
+function focusCoverNaturalVisualSize(btn, mobile = isMobileFocusCoverLayout()) {
+  const metrics = computeFocusBookmarkMetrics(bookForCoverBtn(btn), mobile);
+  return applyFocusBookmarkLayoutVars(btn, metrics, 1);
+}
+
+function invalidateFocusCoverLayout() {
+  state.coverLayoutReady = false;
+  syncRegionCoverPositions();
+}
+
+function createRegionCoverBookmarkPeek(item, slug) {
+  const shell = document.createElement("span");
+  shell.className = "region-cover-bookmark-shell";
+
+  const cover = document.createElement("span");
+  cover.className = "region-cover-bookmark-cover";
+  const img = document.createElement("img");
+  img.src = `./assets/covers/${slug}.jpg`;
+  img.alt = splitTranslatedTitle(item.book.title).zh || item.book.title;
+  img.loading = "lazy";
+  img.addEventListener(
+    "load",
+    () => {
+      if (!rememberCoverAspectFromImage(img)) return;
+      invalidateFocusCoverLayout();
+    },
+    { once: true }
+  );
+  cover.appendChild(img);
+  if (img.complete && img.naturalWidth) rememberCoverAspectFromImage(img);
+
+  const panel = document.createElement("span");
+  panel.className = "region-cover-bookmark-panel";
+  const { zh } = splitTranslatedTitle(item.book.title);
+  const titleZh = document.createElement("span");
+  titleZh.className = "region-cover-bookmark-title-zh";
+  titleZh.textContent = zh;
+  panel.appendChild(titleZh);
+
+  shell.appendChild(cover);
+  shell.appendChild(panel);
+  return shell;
+}
+
 function buildRegionCoverLayer() {
   if (!regionCoverLayer || !state.focusRegionId) return;
   const sig = regionCoverLayerBuildSignature();
@@ -1025,35 +1821,22 @@ function buildRegionCoverLayer() {
         continue;
       }
       renderedBookIds.add(item.book.id);
-      const slug = COVER_SLUG_BY_BOOK_ID[item.book.id];
+      const slug = resolveCoverSlugForBook(item.book);
+      if (!slug || !COVER_SLUGS_WITH_FILES.has(slug)) continue;
 
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "region-cover-hit";
+      btn.className = "region-cover-hit region-cover-hit--bookmark";
       btn.dataset.groupKey = group.key;
       btn.dataset.bookId = item.book.id;
       btn.dataset.bookIndex = String(itemIndex);
       btn.dataset.slotJitterX = String((Math.random() - 0.5).toFixed(4));
       btn.dataset.slotJitterY = String((Math.random() - 0.5).toFixed(4));
-      const coverScale = (0.95 + Math.random() * 0.32).toFixed(3);
-      btn.dataset.baseCoverScale = coverScale;
-      btn.style.setProperty("--cover-scale", coverScale);
-      btn.setAttribute("aria-label", `${item.book.title}，查看详情`);
+      btn.dataset.baseCoverScale = "1";
+      btn.style.setProperty("--cover-scale", "1");
+      btn.setAttribute("aria-label", `${item.book.title}，点击展开`);
 
-      const inner = document.createElement("span");
-      inner.className = "region-cover-hit-inner";
-      const { zh, en } = splitTranslatedTitle(item.book.title);
-      if (slug) {
-        const img = document.createElement("img");
-        img.src = `./assets/covers/${slug}.jpg`;
-        img.alt = "";
-        img.loading = "lazy";
-        inner.appendChild(img);
-      } else {
-        inner.classList.add("region-cover-hit-inner--placeholder");
-        inner.textContent = en || zh;
-      }
-      btn.appendChild(inner);
+      btn.appendChild(createRegionCoverBookmarkPeek(item, slug));
 
       const setFocusHover = () => {
         hoveredFocusBookId = item.book.id;
@@ -1079,7 +1862,7 @@ function buildRegionCoverLayer() {
         state.selectedBookIndex = idx;
         const x = Number(btn.dataset.coverX) || state.width * 0.5;
         const y = Number(btn.dataset.coverY) || state.height * 0.5;
-        openBookCard(g, x, y, idx);
+        openBookCard(g, x, y, idx, { expandImmediately: true });
         bookCard.dataset.anchorMode = "cover";
       });
 
@@ -1088,13 +1871,8 @@ function buildRegionCoverLayer() {
   }
 }
 
-function isFocusSplitCardOpen() {
-  return (
-    state.focusMode &&
-    bookCard &&
-    !bookCard.classList.contains("is-hidden") &&
-    bookCard.classList.contains("book-card--focus-split")
-  );
+function isFocusBookmarkCardOpen() {
+  return state.focusMode && isBookmarkCardOpen();
 }
 
 function isGlobalBookCardOpen() {
@@ -1153,6 +1931,9 @@ function syncRegionCoverPositions() {
     }
 
     const size = coverVisualSize(btn);
+    const imageSize = coverImageSize(btn);
+    btn.style.setProperty("--cover-render-width", `${imageSize.width}px`);
+    btn.style.setProperty("--cover-render-height", `${imageSize.height}px`);
     const margin = 18;
     const hasCachedOffset =
       btn.dataset.offsetX !== undefined &&
@@ -1176,32 +1957,12 @@ function syncRegionCoverPositions() {
     const baseX = state.coverLayoutReady ? coverX : pin.x + (coverX - pin.x) * positionFade;
     const baseY = state.coverLayoutReady ? coverY : pin.y + (coverY - pin.y) * positionFade;
 
-    const splitOpen = isFocusSplitCardOpen();
-    const activeBookId = bookCard.dataset.bookId;
-    const isSplitActive = splitOpen && activeBookId && btn.dataset.bookId === activeBookId;
-
-    const split = state.coverSplitBlend;
-    const activeRenderSize = syncSplitActiveCoverMetrics(btn, isSplitActive);
-    const targetSize = isSplitActive ? activeRenderSize : size;
-    const minCx = targetSize.width / 2 + 16;
-    const maxCx = Math.max(minCx, state.width * 0.4 - targetSize.width / 2);
-    const splitTargetX = clamp(state.width * 0.24, minCx, maxCx);
-    const splitTargetY = state.height * 0.5;
-
-    let placeX = baseX;
-    let placeY = baseY;
-    if (isSplitActive) {
-      placeX = baseX + (splitTargetX - baseX) * split;
-      placeY = baseY + (splitTargetY - baseY) * split;
-    }
+    const cardOpen = isFocusBookmarkCardOpen();
+    const placeX = baseX;
+    const placeY = baseY;
 
     const baseOpacity = 0.18 + pin.z * 0.82 * positionFade;
-    let opacityMul = 1;
-    if (splitOpen) {
-      opacityMul = isSplitActive ? 1 : suppressFade;
-    } else {
-      opacityMul = suppressFade;
-    }
+    const opacityMul = cardOpen ? suppressFade : 1;
 
     btn.dataset.pinX = String(pin.x);
     btn.dataset.pinY = String(pin.y);
@@ -1216,26 +1977,28 @@ function syncRegionCoverPositions() {
       state.cardSuppressionBlend < 0.05 &&
       bookCard.classList.contains("is-hidden");
     btn.style.pointerEvents = allowHit ? "auto" : "none";
-    const zBoost = isSplitActive && split > 0.2 ? 220 : 0;
-    btn.style.zIndex = String(Math.round(100 + index + zBoost));
-    btn.classList.toggle("region-cover-hit--split-active", isSplitActive && split > 0.15);
+    btn.style.zIndex = String(Math.round(100 + index));
+    btn.classList.remove("region-cover-hit--split-active");
   }
 }
 
 function coverVisualSize(btn) {
-  const imageSize = coverImageSize(btn);
-  const mobile = isMobileFocusCoverLayout();
+  const scale = Number(btn.style.getPropertyValue("--cover-scale")) || 1;
+  const metrics = computeFocusBookmarkMetrics(bookForCoverBtn(btn));
+  const layout = applyFocusBookmarkLayoutVars(btn, metrics, scale);
   return {
-    width: Math.max(mobile ? 108 : 140, imageSize.width + (mobile ? 18 : 24)),
-    height: imageSize.height + (mobile ? 24 : 32),
+    width: layout.width,
+    height: layout.height,
   };
 }
 
 function coverImageSize(btn) {
   const scale = Number(btn.style.getPropertyValue("--cover-scale")) || 1;
+  const metrics = computeFocusBookmarkMetrics(bookForCoverBtn(btn));
+  const layout = applyFocusBookmarkLayoutVars(btn, metrics, scale);
   return {
-    width: 116 * scale,
-    height: 174 * scale,
+    width: layout.imageWidth,
+    height: layout.imageHeight,
   };
 }
 
@@ -1409,15 +2172,18 @@ function fitCoverScalesToViewport(entries) {
   const availableWidth = Math.max(140, state.width - margin * 2);
   const bottomReserve = mobile ? Math.max(88, Math.min(128, state.height * 0.14)) : 0;
   const availableHeight = Math.max(180, state.height - margin * 2 - bottomReserve);
-  let bestScale = mobile ? 0.42 : 0.58;
+  const unitSizes = entries.map((entry) => focusCoverNaturalVisualSize(entry.btn, mobile));
+  const maxUnitW = Math.max(...unitSizes.map((size) => size.width), 1);
+  const maxUnitH = Math.max(...unitSizes.map((size) => size.height), 1);
+  let bestScale = 1;
   let bestScore = -Infinity;
 
   for (let columns = 1; columns <= count; columns += 1) {
     const rows = Math.ceil(count / columns);
     const slotWidth = (availableWidth - gap * (columns - 1)) / columns;
     const slotHeight = (availableHeight - gap * (rows - 1)) / rows;
-    const widthScale = (slotWidth - (mobile ? 18 : 24)) / 116;
-    const heightScale = (slotHeight - (mobile ? 24 : 32)) / 174;
+    const widthScale = (slotWidth - (mobile ? 18 : 24)) / maxUnitW;
+    const heightScale = (slotHeight - (mobile ? 24 : 32)) / maxUnitH;
     const scale = Math.min(widthScale, heightScale);
     const score = scale * 100 - rows * (mobile ? 6 : 4) - Math.abs(columns - rows) * 0.8;
     const minSlotWidth = mobile ? 102 : 128;
@@ -1428,10 +2194,9 @@ function fitCoverScalesToViewport(entries) {
     }
   }
 
-  const maxScale = clamp(bestScale, mobile ? 0.42 : 0.58, mobile ? 0.82 : 1.16);
+  const maxScale = clamp(bestScale, mobile ? 0.55 : 0.72, 1);
   for (const entry of entries) {
-    const baseScale = Number(entry.btn.dataset.baseCoverScale || entry.btn.style.getPropertyValue("--cover-scale")) || 1;
-    entry.btn.style.setProperty("--cover-scale", Math.min(baseScale, maxScale).toFixed(3));
+    entry.btn.style.setProperty("--cover-scale", maxScale.toFixed(3));
   }
 }
 
@@ -2129,7 +2894,7 @@ function drawGlobe(time) {
     state.targetPitch += (state.focusPitchTarget - state.targetPitch) * camEase;
   }
 
-  const allowIdleSpin = state.focusBlend < 0.06 && !state.focusMode && !isGlobalBookCardOpen();
+  const allowIdleSpin = state.focusBlend < 0.06 && bookCard.classList.contains("is-hidden");
   if (!state.isDragging) {
     if (allowIdleSpin) state.targetYaw += 0.00025;
     state.targetYaw += state.velocityX;
@@ -2146,25 +2911,22 @@ function drawGlobe(time) {
     buildRegionCoverLayer();
   }
 
-  const cardOpen = state.focusMode && !bookCard.classList.contains("is-hidden");
-  const suppressionTarget = cardOpen ? 1 : 0;
+  const suppressionTarget = isFocusBookmarkCardOpen() ? 1 : 0;
   const suppressionEase = prefersReducedMotion ? 1 : 0.16;
   state.cardSuppressionBlend += (suppressionTarget - state.cardSuppressionBlend) * suppressionEase;
   if (Math.abs(suppressionTarget - state.cardSuppressionBlend) < 0.004) {
     state.cardSuppressionBlend = suppressionTarget;
   }
 
-  const splitTarget =
-    state.focusMode &&
-    bookCard &&
-    !bookCard.classList.contains("is-hidden") &&
-    bookCard.classList.contains("book-card--focus-split")
-      ? 1
-      : 0;
-  const splitEase = prefersReducedMotion ? 1 : 0.16;
-  state.coverSplitBlend += (splitTarget - state.coverSplitBlend) * splitEase;
-  if (Math.abs(splitTarget - state.coverSplitBlend) < 0.004) {
-    state.coverSplitBlend = splitTarget;
+  const bookmarkExpandTarget =
+    isBookmarkCardOpen() && state.bookmarkExpandTarget > 0 ? 1 : 0;
+  const bookmarkEase = prefersReducedMotion ? 1 : 0.14;
+  state.bookmarkExpandBlend += (bookmarkExpandTarget - state.bookmarkExpandBlend) * bookmarkEase;
+  if (Math.abs(bookmarkExpandTarget - state.bookmarkExpandBlend) < 0.004) {
+    state.bookmarkExpandBlend = bookmarkExpandTarget;
+  }
+  if (isBookmarkCardOpen()) {
+    bookCard.style.setProperty("--bookmark-expand", state.bookmarkExpandBlend.toFixed(3));
   }
 
   const searchActive = state.searchFocused || state.searchQuery.length > 0;
@@ -2273,8 +3035,7 @@ function drawLand() {
 function drawPins(time) {
   projectedPins = [];
 
-  const suppress = state.cardSuppressionBlend;
-  const suppressAlpha = 1 - suppress;
+  const suppressAlpha = state.focusMode ? 1 - state.cardSuppressionBlend : 1;
 
   const radius = state.radius * (0.94 + state.intro * 0.06);
   const pulse = (Math.sin(time * 0.005) + 1) * 0.5;
@@ -2301,7 +3062,8 @@ function drawPins(time) {
     const isSelected = state.selectedGroupKey === group.key;
     const isHovered = hoveredPinId === group.key;
     const focusDimming = state.focusMode && state.focusBlend > 0.34;
-    const focusHighlighted = focusDimming && focusBookMatchesGroup(group);
+    const focusHighlighted =
+      focusDimming && (state.selectedGroupKey === group.key || focusBookMatchesGroup(group));
     const focusCoverPinBoost = focusHighlighted;
 
     let kwAlpha = 1;
@@ -2642,7 +3404,9 @@ function tryFinalizeGlobePointer(event) {
       const selected = itemsUi[0] || hit.group.items[0];
       state.selectedBookId = selected.book.id;
       state.selectedSiteIndex = selected.siteIndex;
-      openBookCard(hit.group, hit.x, hit.y, 0);
+      const expandImmediately =
+        state.focusMode && bookSupportsBookmarkCover(selected.book);
+      openBookCard(hit.group, hit.x, hit.y, 0, { expandImmediately });
       return;
     }
 
@@ -2717,13 +3481,15 @@ function updateHoverPin(x, y) {
   stage.style.cursor = pin || hoveredRegionLabelId ? "pointer" : "grab";
 }
 
-function setCardBook(group, bookIndex) {
+function setCardBook(group, bookIndex, options = {}) {
   const items = groupItemsForSearchUI(group);
   if (items.length === 0) return null;
 
   const safeIndex = ((bookIndex % items.length) + items.length) % items.length;
   const item = items[safeIndex];
   const book = item.book;
+  const wasExpanded = isBookmarkCardExpanded();
+  const wasBookmark = isBookmarkCardOpen();
 
   bookLocationZh.textContent =
     book.sourceField || [book.countryOrRegion, book.location].filter(Boolean).join("·");
@@ -2735,7 +3501,7 @@ function setCardBook(group, bookIndex) {
   bookTitleEn.classList.toggle("is-empty", !en);
   bookMeta.textContent = `${book.author} · ${book.year}\n${resolvePublisherLabel(book.publisher)}`;
   bookSummary.textContent = formatSummaryForCard(book.summary);
-  bookCardNav.classList.toggle("is-hidden", state.focusMode || items.length <= 1);
+  bookCardNav.classList.toggle("is-hidden", items.length <= 1);
   bookCardCount.textContent = `${safeIndex + 1} / ${items.length}`;
   state.selectedBookId = book.id;
   state.selectedSiteIndex = item.siteIndex;
@@ -2744,7 +3510,214 @@ function setCardBook(group, bookIndex) {
   bookCard.dataset.bookId = book.id;
   bookCard.dataset.siteIndex = String(item.siteIndex);
   bookCard.classList.toggle("book-card--title-single-line", BOOK_CARD_TITLE_SINGLE_LINE_IDS.has(book.id));
+
+  invalidateBookmarkPanelMeasureCache();
+  const animateCover = options.animateCover ?? (wasBookmark && (wasExpanded || safeIndex > 0));
+  if (applyBookmarkCardMode(book, { animateCover })) {
+    if (options.expandImmediately) {
+      state.bookmarkExpandBlend = 0;
+      state.bookmarkExpandTarget = 1;
+      bookCard.classList.add("is-bookmark-expanded");
+      bookCard.style.setProperty("--bookmark-expand", "0");
+      bookCard.dataset.anchorMode = "bookmark-expanded";
+    } else {
+      const shouldExpand = safeIndex > 0 || wasExpanded;
+      setBookmarkExpandState(shouldExpand, { immediate: shouldExpand });
+    }
+  }
+
   return item;
+}
+
+function bookmarkEase(t) {
+  const x = clamp(t, 0, 1);
+  return x * x * (3 - 2 * x);
+}
+
+let bookmarkMeasureCtx = null;
+let bookmarkPanelMeasureCacheKey = "";
+let bookmarkPanelMeasureCacheFullH = 0;
+
+function invalidateBookmarkPanelMeasureCache() {
+  bookmarkPanelMeasureCacheKey = "";
+  bookmarkPanelMeasureCacheFullH = 0;
+}
+
+function measureBookmarkExpandedPanelHeight(panelW, maxPanelH) {
+  const panel = bookCard?.querySelector(".book-card-panel");
+  if (!panel || !bookCard.classList.contains("book-card--bookmark")) {
+    return maxPanelH;
+  }
+
+  const cacheKey = [
+    bookCard.dataset.bookId || "",
+    Math.round(panelW),
+    bookLocationZh.textContent || "",
+    bookSummary.textContent || "",
+    getComputedStyle(document.documentElement).getPropertyValue("--scale-card-summary"),
+  ].join("|");
+
+  if (cacheKey === bookmarkPanelMeasureCacheKey && bookmarkPanelMeasureCacheFullH > 0) {
+    return Math.min(bookmarkPanelMeasureCacheFullH, maxPanelH);
+  }
+
+  const shell = bookCard.querySelector(".book-card-shell");
+  if (!shell) return maxPanelH;
+
+  const clone = panel.cloneNode(true);
+  clone.setAttribute("aria-hidden", "true");
+  clone.classList.add("book-card-panel--measure");
+  Object.assign(clone.style, {
+    position: "absolute",
+    visibility: "hidden",
+    pointerEvents: "none",
+    left: "-10000px",
+    top: "0",
+    width: `${panelW}px`,
+    height: "auto",
+    maxHeight: "none",
+    overflow: "visible",
+    transform: "none",
+  });
+
+  shell.appendChild(clone);
+  const measured = Math.ceil(clone.getBoundingClientRect().height);
+  shell.removeChild(clone);
+
+  bookmarkPanelMeasureCacheKey = cacheKey;
+  bookmarkPanelMeasureCacheFullH = measured;
+  return Math.min(Math.max(measured, 96), maxPanelH);
+}
+
+function measureBookmarkTextWidth(el, fallbackFont, text = el?.textContent || "") {
+  if (!bookmarkMeasureCtx) {
+    bookmarkMeasureCtx = document.createElement("canvas").getContext("2d");
+  }
+  const style = el ? window.getComputedStyle(el) : null;
+  bookmarkMeasureCtx.font = style?.font || fallbackFont;
+  return bookmarkMeasureCtx.measureText(String(text || "").trim()).width;
+}
+
+function bookmarkPeekPanelWidth() {
+  const metaFirstLine = String(bookMeta.textContent || "").split("\n")[0] || "";
+  const maxText = Math.max(
+    measureBookmarkTextWidth(bookTitleZh, "20px Georgia"),
+    measureBookmarkTextWidth(bookTitleEn, "14px Georgia"),
+    measureBookmarkTextWidth(bookMeta, "12px Inter", metaFirstLine)
+  );
+  return Math.ceil(maxText + 54);
+}
+
+function bookmarkExpandedBlockLayout(margin, gap, mobile) {
+  const aspect = bookmarkCoverAspect();
+  const minBlockH = mobile ? 82 : 96;
+  const maxBlockH = clamp(
+    state.height * (mobile ? 0.48 : 0.66),
+    mobile ? 250 : 360,
+    state.height - margin * 2
+  );
+
+  let blockH = maxBlockH;
+  let coverW = blockH * aspect;
+  let panelW = clamp(
+    state.width - coverW - gap - margin * 2,
+    mobile ? 210 : 300,
+    mobile ? state.width - margin * 2 : Math.min(520, state.width * 0.48)
+  );
+
+  for (let pass = 0; pass < 2; pass += 1) {
+    const contentH = measureBookmarkExpandedPanelHeight(panelW, maxBlockH);
+    blockH = clamp(contentH, minBlockH, maxBlockH);
+    coverW = blockH * aspect;
+    panelW = clamp(
+      state.width - coverW - gap - margin * 2,
+      mobile ? 210 : 300,
+      mobile ? state.width - margin * 2 : Math.min(520, state.width * 0.48)
+    );
+  }
+
+  return { blockH, coverW, panelW, maxBlockH };
+}
+
+function bookmarkLayoutMetrics(rawT = state.bookmarkExpandBlend) {
+  const t = bookmarkEase(rawT);
+  const margin = state.width <= 760 ? 14 : 18;
+  const gap = state.width <= 760 ? 12 : 18;
+  const mobile = state.width <= 760;
+  const aspect = bookmarkCoverAspect();
+
+  const panelPeekW = clamp(bookmarkPeekPanelWidth(), mobile ? 154 : 188, mobile ? state.width - margin * 2 : 360);
+  const peekCoverW = clamp(
+    Math.max(state.width * (mobile ? 0.38 : 0.16), panelPeekW + (mobile ? 22 : 28)),
+    mobile ? 146 : 190,
+    mobile ? Math.min(220, state.width - margin * 2) : 380
+  );
+  const peekCoverH = peekCoverW / aspect;
+  const peekTabH = clamp(mobile ? 82 : 90, 78, Math.min(108, peekCoverH * 0.34));
+
+  const expanded = bookmarkExpandedBlockLayout(margin, gap, mobile);
+  const expandedCoverH = expanded.blockH;
+  const expandedCoverW = expanded.coverW;
+  const panelExpandedW = expanded.panelW;
+  const panelExpandedH = expanded.blockH;
+  const coverW = lerp(peekCoverW, expandedCoverW, t);
+  const coverH = lerp(peekCoverH, expandedCoverH, t);
+  const coverTop = lerp(peekTabH, 0, t);
+
+  const panelW = lerp(panelPeekW, panelExpandedW, t);
+  const panelLeft = lerp(peekCoverW - panelPeekW, coverW + gap, t);
+  const panelTop = 0;
+  const panelH = lerp(peekTabH, panelExpandedH, t);
+  const cardW = Math.max(coverW, panelLeft + panelW);
+  const cardH = Math.max(coverTop + coverH, panelTop + panelH);
+
+  return {
+    t,
+    margin,
+    gap,
+    coverW,
+    coverH,
+    coverTop,
+    panelW,
+    panelH,
+    panelLeft,
+    panelTop,
+    cardW,
+    cardH,
+    expandedBlockH: expanded.blockH,
+  };
+}
+
+function syncBookmarkCardMetrics(rawT = state.bookmarkExpandBlend) {
+  if (!bookCard.classList.contains("book-card--bookmark")) return null;
+  const m = bookmarkLayoutMetrics(rawT);
+  bookCard.style.setProperty("--bookmark-expand", m.t.toFixed(3));
+  bookCard.style.setProperty("--bookmark-card-w", `${m.cardW}px`);
+  bookCard.style.setProperty("--bookmark-card-h", `${m.cardH}px`);
+  bookCard.style.setProperty("--bookmark-cover-w", `${m.coverW}px`);
+  bookCard.style.setProperty("--bookmark-cover-h", `${m.coverH}px`);
+  bookCard.style.setProperty("--bookmark-cover-top", `${m.coverTop}px`);
+  bookCard.style.setProperty("--bookmark-panel-left", `${m.panelLeft}px`);
+  bookCard.style.setProperty("--bookmark-panel-top", `${m.panelTop}px`);
+  bookCard.style.setProperty("--bookmark-panel-w", `${m.panelW}px`);
+  bookCard.style.setProperty("--bookmark-panel-h", `${m.panelH}px`);
+  bookCard.classList.toggle(
+    "book-card--bookmark-panel-scroll",
+    isBookmarkCardExpanded() && bookmarkPanelMeasureCacheFullH > m.coverH + 1
+  );
+  return m;
+}
+
+function bookmarkExpandedCenterX() {
+  return state.width * 0.5;
+}
+
+function positionBookmarkExpandedBookCard() {
+  if (!bookCard.classList.contains("book-card--bookmark")) return;
+  syncBookmarkCardMetrics(1) || bookmarkLayoutMetrics(1);
+  bookCard.style.left = `${bookmarkExpandedCenterX()}px`;
+  bookCard.style.top = `${state.height * 0.5}px`;
+  bookCard.style.transform = "translate(-50%, -50%)";
 }
 
 function positionFocusSplitBookCard() {
@@ -2776,62 +3749,51 @@ function positionMobileFocusBookCard() {
   bookCard.style.top = `${state.height - bottomMargin}px`;
 }
 
-function openBookCard(group, x, y, bookIndex = 0) {
-  if (!setCardBook(group, bookIndex)) return;
+function openBookCard(group, x, y, bookIndex = 0, options = {}) {
+  if (!setCardBook(group, bookIndex, options)) return;
   bookCard.dataset.groupKey = group.key;
-  delete bookCard.dataset.anchorMode;
+  if (!options.expandImmediately) delete bookCard.dataset.anchorMode;
 
-  if (state.focusMode) {
-    if (isMobileFocusLayout()) {
-      bookCard.classList.remove("book-card--focus-split");
-      bookCard.classList.add("book-card--focus-mobile");
-      bookCard.style.left = `${clamp(x, 24, state.width - 24)}px`;
-      bookCard.style.top = `${clamp(y, 96, state.height - 92)}px`;
-      syncBookCardLayout();
-      void bookCard.offsetHeight;
-      requestAnimationFrame(() => {
-        if (!bookCard.classList.contains("book-card--focus-mobile")) return;
-        positionMobileFocusBookCard();
-        bookCard.classList.remove("is-hidden");
-      });
-    } else {
-      bookCard.classList.remove("book-card--focus-mobile");
-      bookCard.classList.add("book-card--focus-split");
-      bookCard.style.top = "50%";
-      syncBookCardLayout();
-      positionFocusSplitBookCard();
-      requestAnimationFrame(() => {
-        if (!bookCard.classList.contains("book-card--focus-split")) return;
-        bookCard.classList.remove("is-hidden");
-      });
-    }
-  } else {
-    bookCard.classList.remove("book-card--focus-split", "book-card--focus-mobile");
-    bookCard.classList.remove("is-hidden");
-    syncBookCardLayout();
-    bookCard.style.left = `${x}px`;
-    bookCard.style.top = `${y}px`;
-    requestAnimationFrame(() => {
-      if (bookCard.classList.contains("is-hidden")) return;
-      if (bookCard.classList.contains("book-card--focus-split")) return;
-      clampBookCardToViewport();
-    });
+  const items = groupItemsForSearchUI(group);
+  const safeIndex = ((bookIndex % items.length) + items.length) % items.length;
+  const useBookmark = bookSupportsBookmarkCover(items[safeIndex]?.book);
+
+  bookCard.classList.remove("book-card--focus-split", "book-card--focus-mobile");
+  if (!useBookmark) resetBookmarkCardState();
+  bookCard.classList.remove("is-hidden");
+  syncBookCardLayout();
+  bookCard.style.left = `${x}px`;
+  bookCard.style.top = `${y}px`;
+  if (options.expandImmediately && state.focusMode) {
+    state.cardSuppressionBlend = 1;
   }
+  requestAnimationFrame(() => {
+    if (bookCard.classList.contains("is-hidden")) return;
+    if (useBookmark) syncBookmarkCardPosition();
+    else clampBookCardToViewport();
+  });
 }
 
 function closeBookCard() {
-  const wasFocusSplit = bookCard.classList.contains("book-card--focus-split");
-  const wasFocusMobile = bookCard.classList.contains("book-card--focus-mobile");
+  const wasBookmark = bookCard.classList.contains("book-card--bookmark");
   if (state.focusMode) hoveredFocusBookId = null;
+  if (wasBookmark) {
+    state.bookmarkExpandBlend = 0;
+    state.bookmarkExpandTarget = 0;
+    bookCard.classList.remove("is-bookmark-expanded", "is-bookmark-pulling");
+    bookCard.style.setProperty("--bookmark-expand", "0");
+  }
   bookCard.classList.add("is-hidden");
-  if (wasFocusSplit || wasFocusMobile) {
+  if (wasBookmark) {
     window.setTimeout(() => {
       if (bookCard.classList.contains("is-hidden")) {
         bookCard.classList.remove("book-card--focus-split", "book-card--focus-mobile", "book-card--title-single-line");
+        resetBookmarkCardState();
       }
     }, 400);
   } else {
     bookCard.classList.remove("book-card--focus-split", "book-card--focus-mobile", "book-card--title-single-line");
+    resetBookmarkCardState();
   }
   delete bookCard.dataset.bookId;
   delete bookCard.dataset.siteIndex;
@@ -2864,7 +3826,6 @@ function clampBookCardToViewport() {
 
 function switchCardBook(delta) {
   if (bookCard.classList.contains("is-hidden")) return;
-  if (state.focusMode) return;
 
   const groupKey = bookCard.dataset.groupKey;
   const group = pinGroups.find((item) => item.key === groupKey);
@@ -2872,21 +3833,62 @@ function switchCardBook(delta) {
   if (!group || items.length <= 1) return;
 
   const currentIndex = Number(bookCard.dataset.bookIndex || 0);
-  setCardBook(group, currentIndex + delta);
+  const wasBookmark = isBookmarkCardOpen();
+  setCardBook(group, currentIndex + delta, { animateCover: wasBookmark });
   syncBookCardLayout();
-  if (bookCard.classList.contains("book-card--focus-split")) positionFocusSplitBookCard();
+  if (bookCard.classList.contains("book-card--bookmark")) {
+    if (isBookmarkCardExpanded()) positionBookmarkExpandedBookCard();
+    else syncBookmarkCardPosition();
+  } else {
+    clampBookCardToViewport();
+  }
+}
+
+function syncBookmarkCardPosition() {
+  const groupKey = bookCard.dataset.groupKey;
+  const pin = projectedPins.find((item) => item.groupKey === groupKey);
+  if (!pin || pin.z <= 0.03) {
+    closeBookCard();
+    state.selectedBookId = null;
+    state.selectedSiteIndex = 0;
+    state.selectedGroupKey = null;
+    state.selectedBookIndex = 0;
+    return;
+  }
+
+  const rawT = state.bookmarkExpandBlend;
+  const m = syncBookmarkCardMetrics(rawT) || bookmarkLayoutMetrics(rawT);
+  const t = m.t;
+
+  const peekX = clamp(
+    pin.x + (m.cardW - m.coverW) / 2,
+    m.cardW / 2 + m.margin,
+    state.width - m.cardW / 2 - m.margin
+  );
+  const peekY = clamp(pin.y, m.cardH + m.margin, state.height - m.margin);
+  const expandedCenterX = bookmarkExpandedCenterX();
+  const expandedTop = state.height * 0.5;
+  const x = lerp(peekX, expandedCenterX, t);
+  const y = lerp(peekY, expandedTop, t);
+
+  bookCard.style.left = `${x}px`;
+  bookCard.style.top = `${y}px`;
+
+  const tx = -50;
+  const ty = lerp(-100, -50, t);
+  const lift = lerp(-12, 0, t);
+  bookCard.style.transform = `translate(${tx}%, calc(${ty}% + ${lift}px))`;
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
 }
 
 function syncCardPosition() {
   if (bookCard.classList.contains("is-hidden")) return;
 
-  if (bookCard.classList.contains("book-card--focus-split")) {
-    positionFocusSplitBookCard();
-    return;
-  }
-
-  if (bookCard.classList.contains("book-card--focus-mobile")) {
-    positionMobileFocusBookCard();
+  if (bookCard.classList.contains("book-card--bookmark")) {
+    syncBookmarkCardPosition();
     return;
   }
 
@@ -2909,8 +3911,17 @@ function syncCardPosition() {
 window.addEventListener("resize", () => {
   resize();
   syncBookCardLayout();
-  if (bookCard.classList.contains("book-card--focus-split")) positionFocusSplitBookCard();
-  if (bookCard.classList.contains("book-card--focus-mobile")) positionMobileFocusBookCard();
+  if (state.distantSimilarityOpen && distantSimilarityPair) {
+    for (const slot of distantSimilarityPair.querySelectorAll(".distant-similarity-slot")) {
+      const book = books.find((item) => item.id === slot.dataset.bookId);
+      if (book) applyDistantSimilaritySlotLayout(slot, book);
+    }
+  }
+  if (bookCard.classList.contains("book-card--bookmark") && isBookmarkCardExpanded()) {
+    positionBookmarkExpandedBookCard();
+  } else if (bookCard.classList.contains("book-card--bookmark")) {
+    syncBookmarkCardPosition();
+  }
 });
 
 canvas.addEventListener("pointerdown", onPointerDown);
@@ -2936,28 +3947,62 @@ window.addEventListener("blur", () => {
   resetGlobePointerState();
 });
 
-bookCardClose.addEventListener("click", () => {
+bookCardClose.addEventListener("click", (e) => {
+  e.stopPropagation();
   closeBookCard();
   state.selectedBookId = null;
   state.selectedSiteIndex = 0;
   state.selectedGroupKey = null;
   state.selectedBookIndex = 0;
 });
+bookCardPrev.addEventListener("click", (e) => e.stopPropagation());
+bookCardNext.addEventListener("click", (e) => e.stopPropagation());
 bookCardPrev.addEventListener("click", () => switchCardBook(-1));
 bookCardNext.addEventListener("click", () => switchCardBook(1));
+
+bookCard.addEventListener("click", (e) => {
+  if (e.target.closest(".book-card-close, .book-card-nav-btn")) return;
+  if (!isBookmarkCardOpen() || isBookmarkCardExpanded()) return;
+  expandBookmarkCard();
+});
 
 if (globeFocusBack) {
   globeFocusBack.addEventListener("click", () => exitRegionFocus());
 }
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && state.focusMode) exitRegionFocus();
+  if (e.key === "Escape") {
+    if (state.distantSimilarityOpen) {
+      closeDistantSimilarity();
+      return;
+    }
+    if (state.focusMode) exitRegionFocus();
+  }
 });
 
 const keywordSearch = document.querySelector("#keywordSearch");
 const keywordSearchGlass = document.querySelector("#keywordSearchGlass");
 const keywordSearchMirror = document.querySelector(".intro-keyword-input-mirror");
 const keywordSearchClear = document.querySelector("#keywordSearchClear");
+const keywordSearchSimilarity = document.querySelector("#keywordSearchSimilarity");
+const distantSimilarityLayer = document.querySelector("#distantSimilarityLayer");
+const distantSimilarityClose = document.querySelector("#distantSimilarityClose");
+const distantSimilarityCaption = document.querySelector("#distantSimilarityCaption");
+const distantSimilarityPair = document.querySelector("#distantSimilarityPair");
+
+if (keywordSearchSimilarity) {
+  keywordSearchSimilarity.addEventListener("click", () => openDistantSimilarity());
+}
+
+if (distantSimilarityClose) {
+  distantSimilarityClose.addEventListener("click", () => closeDistantSimilarity());
+}
+
+if (distantSimilarityLayer) {
+  distantSimilarityLayer.addEventListener("click", (e) => {
+    if (e.target === distantSimilarityLayer) closeDistantSimilarity();
+  });
+}
 if (keywordSearch) {
   const syncKeywordMirror = () => {
     if (!keywordSearchMirror) return;
@@ -2965,11 +4010,16 @@ if (keywordSearch) {
     keywordSearchMirror.textContent = v.length > 0 ? v : "\u200b";
   };
   const syncSearchQuery = () => {
+    const prevQuery = state.searchQuery;
     state.searchQuery = normalizeKeywordQuery(keywordSearch.value);
     if (keywordSearchGlass) {
       keywordSearchGlass.classList.toggle("has-value", keywordSearch.value.trim() !== "");
     }
     syncKeywordMirror();
+    if (state.distantSimilarityOpen && prevQuery !== state.searchQuery) {
+      closeDistantSimilarity();
+    }
+    syncDistantSimilarityButton();
   };
   keywordSearch.addEventListener("focus", () => {
     state.searchFocused = true;
@@ -2991,6 +4041,7 @@ if (keywordSearch) {
     });
   }
   syncSearchQuery();
+  syncDistantSimilarityButton();
 }
 
 resize();

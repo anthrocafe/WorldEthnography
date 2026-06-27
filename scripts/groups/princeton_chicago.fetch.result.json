@@ -1,0 +1,470 @@
+[
+  {
+    "slug": "vita",
+    "title": "Vita",
+    "author": "João Biehl",
+    "year": "2005",
+    "publisher": "University of California Press",
+    "isbn": "9780520272958",
+    "source_page": "https://www.ucpress.edu/books/vita/paper",
+    "cover_url": "https://webfiles.ucpress.edu/coverimage/isbn13/9780520272958.jpg",
+    "saved_path": "assets/covers/vita.jpg",
+    "bytes": 121156,
+    "dims": [
+      666,
+      1000
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "life-exposed",
+    "title": "Life Exposed",
+    "author": "Adriana Petryna",
+    "year": "2002",
+    "publisher": "Princeton University Press",
+    "isbn": "9780691151663",
+    "source_page": "https://press.princeton.edu/books/paperback/9780691151663/life-exposed",
+    "cover_url": "https://pup-assets.imgix.net/onix/images/9780691151663.jpg?w=1500&auto=format",
+    "saved_path": "assets/covers/life-exposed.jpg",
+    "bytes": 339558,
+    "dims": [
+      1500,
+      2266
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "animal-intimacies",
+    "title": "Animal Intimacies",
+    "author": "R. Govindrajan",
+    "year": "2018",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226559988",
+    "source_page": "https://www.goodreads.com/book/show/36217577-animal-intimacies",
+    "cover_url": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1523864609i/36217577.jpg",
+    "saved_path": "assets/covers/animal-intimacies.jpg",
+    "bytes": 296717,
+    "dims": [
+      853,
+      1280
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "a-heart-for-the-work",
+    "title": "A Heart for the Work",
+    "author": "Claire Wendland",
+    "year": "2010",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226893273",
+    "source_page": "https://press.uchicago.edu/ucp/books/book/chicago/H/bo8854910.html",
+    "cover_url": "https://press.uchicago.edu/.imaging/mte/ucp/large/dam/ucp/books/jacket/978/02/26/89/9780226893273.jpg/jcr:content/9780226893273.jpg",
+    "saved_path": "assets/covers/a-heart-for-the-work.jpg",
+    "bytes": 354371,
+    "dims": [
+      1248,
+      1874
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "the-will-to-live",
+    "title": "The Will to Live",
+    "author": "João Biehl",
+    "year": "2005",
+    "publisher": "Princeton University Press",
+    "isbn": "9780691143859",
+    "source_page": "https://press.princeton.edu/books/paperback/9780691143859/will-to-live",
+    "cover_url": "https://pup-assets.imgix.net/onix/images/9780691143859.jpg?w=1500&auto=format",
+    "saved_path": "assets/covers/the-will-to-live.jpg",
+    "bytes": 160306,
+    "dims": [
+      1500,
+      2280
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "truth-in-motion",
+    "title": "Truth in Motion",
+    "author": "Martin Holbraad",
+    "year": "2012",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226349213",
+    "source_page": "https://press.uchicago.edu/ucp/books/book/chicago/T/bo12986119.html",
+    "cover_url": "https://press.uchicago.edu/.imaging/mte/ucp/large/dam/ucp/books/jacket/978/02/26/34/9780226349213.jpg/jcr:content/9780226349213.jpg",
+    "saved_path": "assets/covers/truth-in-motion.jpg",
+    "bytes": 216411,
+    "dims": [
+      1249,
+      1874
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "spirits-of-modernity",
+    "title": "Spirits of Modernity",
+    "author": "Harry G. West",
+    "year": "2005",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226894058",
+    "source_page": "https://press.uchicago.edu/ucp/books/book/chicago/K/bo3615616.html",
+    "cover_url": "https://press.uchicago.edu/.imaging/mte/ucp/large/dam/ucp/books/jacket/978/02/26/89/9780226894058.jpg/jcr:content/9780226894058.jpg",
+    "saved_path": "assets/covers/spirits-of-modernity.jpg",
+    "bytes": 91425,
+    "dims": [
+      576,
+      864
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "governing-educational-desire",
+    "title": "Governing Educational Desire",
+    "author": "Andrew Kipnis（任柯安）",
+    "year": "2011",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226437552",
+    "source_page": "https://press.uchicago.edu/ucp/books/book/chicago/G/bo10549225.html",
+    "cover_url": "https://press.uchicago.edu/.imaging/mte/ucp/large/dam/ucp/books/jacket/978/02/26/43/9780226437552.jpg/jcr:content/9780226437552.jpg",
+    "saved_path": "assets/covers/governing-educational-desire.jpg",
+    "bytes": 302212,
+    "dims": [
+      1249,
+      1874
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "ghetto-at-the-center-of-the-world",
+    "title": "Ghetto at the Center of the World",
+    "author": "Gordon Mathews（麥高登）",
+    "year": "2011",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226510200",
+    "source_page": "https://press.uchicago.edu/ucp/books/book/chicago/G/bo11234886.html",
+    "cover_url": "https://press.uchicago.edu/.imaging/mte/ucp/large/dam/ucp/books/jacket/978/02/26/51/9780226510200.jpg/jcr:content/9780226510200.jpg",
+    "saved_path": "assets/covers/ghetto-at-the-center-of-the-world.jpg",
+    "bytes": 297518,
+    "dims": [
+      1249,
+      1874
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "depression-in-japan",
+    "title": "Depression in Japan",
+    "author": "Junko Kitanaka（北中淳子）",
+    "year": "2012",
+    "publisher": "Princeton University Press",
+    "isbn": "9780691142050",
+    "source_page": "https://press.princeton.edu/books/paperback/9780691142050/depression-in-japan",
+    "cover_url": "https://pup-assets.imgix.net/onix/images/9780691142050.jpg?w=1500&auto=format",
+    "saved_path": "assets/covers/depression-in-japan.jpg",
+    "bytes": 244343,
+    "dims": [
+      1500,
+      2265
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "intimate-disconnections",
+    "title": "Intimate Disconnections",
+    "author": "Allison Alexy",
+    "year": "2020",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226700953",
+    "source_page": "https://press.uchicago.edu/ucp/books/book/chicago/I/bo49911744.html",
+    "cover_url": "https://press.uchicago.edu/.imaging/mte/ucp/large/dam/ucp/books/jacket/978/02/26/70/9780226700953.jpg/jcr:content/9780226700953.jpg",
+    "saved_path": "assets/covers/intimate-disconnections.jpg",
+    "bytes": 255508,
+    "dims": [
+      1249,
+      1874
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "everything-was-forever-until-it-was-no-more",
+    "title": "Everything Was Forever, Until It Was No More",
+    "author": "Alexei Yurchak",
+    "year": "2006",
+    "publisher": "Princeton University Press",
+    "isbn": "9780691121178",
+    "source_page": "https://press.princeton.edu/books/paperback/9780691284484/everything-was-forever-until-it-was-no-more",
+    "cover_url": "https://pup-assets.imgix.net/onix/images/9780691121178.jpg?w=1500&auto=format",
+    "saved_path": "assets/covers/everything-was-forever-until-it-was-no-more.jpg",
+    "bytes": 652339,
+    "dims": [
+      1500,
+      2284
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "the-moral-neoliberal",
+    "title": "The Moral Neoliberal",
+    "author": "Andrea Muehlebach",
+    "year": "2012",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226545400",
+    "source_page": "https://press.uchicago.edu/ucp/books/book/chicago/M/bo13040555.html",
+    "cover_url": "https://press.uchicago.edu/.imaging/mte/ucp/large/dam/ucp/books/jacket/978/02/26/54/9780226545400.jpg/jcr:content/9780226545400.jpg",
+    "saved_path": "assets/covers/the-moral-neoliberal.jpg",
+    "bytes": 156634,
+    "dims": [
+      1249,
+      1874
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "friction",
+    "title": "Friction",
+    "author": "Anna Tsing（罗安清）",
+    "year": "2004",
+    "publisher": "Princeton University Press",
+    "isbn": "9780691120652",
+    "source_page": "https://press.princeton.edu/books/paperback/9780691263519/friction",
+    "cover_url": "https://pup-assets.imgix.net/onix/images/9780691120652.jpg?w=1500&auto=format",
+    "saved_path": "assets/covers/friction.jpg",
+    "bytes": 441844,
+    "dims": [
+      1500,
+      2135
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "global-body-shopping",
+    "title": "Global \"Body Shopping\"",
+    "author": "Biao Xiang（项飙）",
+    "year": "2007",
+    "publisher": "Princeton University Press",
+    "isbn": "9780691118529",
+    "source_page": "https://press.princeton.edu/books/paperback/9780691118529/global-body-shopping",
+    "cover_url": "https://pup-assets.imgix.net/onix/images/9780691118529.jpg?w=1500&auto=format",
+    "saved_path": "assets/covers/global-body-shopping.jpg",
+    "bytes": 313558,
+    "dims": [
+      1500,
+      2280
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "nostalgia-for-the-future",
+    "title": "Nostalgia for the Future",
+    "author": "Charles Piot",
+    "year": "2010",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226669656",
+    "source_page": "https://press.uchicago.edu/ucp/books/book/chicago/N/bo8697270.html",
+    "cover_url": "https://www.bibliovault.org/thumbs/978-0-226-66965-6-frontcover.jpg",
+    "saved_path": "assets/covers/nostalgia-for-the-future.jpg",
+    "bytes": 143567,
+    "dims": [
+      576,
+      864
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "peripheral-visions",
+    "title": "Peripheral Visions",
+    "author": "Lisa Wedeen",
+    "year": "2008",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226877914",
+    "source_page": "https://press.uchicago.edu/ucp/books/book/chicago/P/bo5893513.html",
+    "cover_url": "https://press.uchicago.edu/.imaging/mte/ucp/large/dam/ucp/books/jacket/978/02/26/87/9780226877914.jpg/jcr:content/9780226877914.jpg",
+    "saved_path": "assets/covers/peripheral-visions.jpg",
+    "bytes": 280491,
+    "dims": [
+      1250,
+      1874
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "evicted-from-eternity",
+    "title": "Evicted from Eternity",
+    "author": "Michael Herzfeld",
+    "year": "2009",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226329123",
+    "source_page": "https://press.uchicago.edu/ucp/books/book/chicago/E/bo6058083.html",
+    "cover_url": "https://press.uchicago.edu/.imaging/mte/ucp/large/dam/ucp/books/jacket/978/02/26/32/9780226329123.jpg/jcr:content/9780226329123.jpg",
+    "saved_path": "assets/covers/evicted-from-eternity.jpg",
+    "bytes": 76451,
+    "dims": [
+      436,
+      624
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "islamic-modern",
+    "title": "Islamic Modern",
+    "author": "Michael Peletz",
+    "year": "2002",
+    "publisher": "Princeton University Press",
+    "isbn": "9780691095080",
+    "source_page": "https://press.princeton.edu/books/paperback/9780691095080/islamic-modern",
+    "cover_url": "https://pup-assets.imgix.net/onix/images/9780691095080.jpg?w=1500&auto=format",
+    "saved_path": "assets/covers/islamic-modern.jpg",
+    "bytes": 355210,
+    "dims": [
+      1500,
+      2266
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "the-perils-of-belonging",
+    "title": "The Perils of Belonging",
+    "author": "Peter Geschiere",
+    "year": "2009",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226289656",
+    "source_page": "https://press.uchicago.edu/ucp/books/book/chicago/P/bo6017282.html",
+    "cover_url": "https://press.uchicago.edu/.imaging/mte/ucp/large/dam/ucp/books/jacket/978/02/26/28/9780226289656.jpg/jcr:content/9780226289656.jpg",
+    "saved_path": "assets/covers/the-perils-of-belonging.jpg",
+    "bytes": 48932,
+    "dims": [
+      425,
+      627
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "memories-of-the-slave-trade",
+    "title": "Memories of the Slave Trade",
+    "author": "Rosalind Shaw",
+    "year": "2002",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226751320",
+    "source_page": "https://www.bibliovault.org/BV.book.epl?ISBN=9780226751320",
+    "cover_url": "https://bibliovault.org/thumbs/978-0-226-75132-0-frontcover.jpg",
+    "saved_path": "assets/covers/memories-of-the-slave-trade.jpg",
+    "bytes": 203776,
+    "dims": [
+      797,
+      1200
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "political-spiritualities",
+    "title": "Political Spiritualities",
+    "author": "Ruth Marshall",
+    "year": "2009",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226507132",
+    "source_page": "https://press.uchicago.edu/ucp/books/book/chicago/P/bo6161614.html",
+    "cover_url": "https://press.uchicago.edu/.imaging/mte/ucp/large/dam/ucp/books/jacket/978/02/26/50/9780226507132.jpg/jcr:content/9780226507132.jpg",
+    "saved_path": "assets/covers/political-spiritualities.jpg",
+    "bytes": 60249,
+    "dims": [
+      423,
+      621
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "knot-of-the-soul",
+    "title": "Knot of the Soul",
+    "author": "Stefania Pandolfo",
+    "year": "2018",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226465081",
+    "source_page": "https://www.labyrinthbooks.com/knot-of-the-soul/",
+    "cover_url": "https://cdn11.bigcommerce.com/s-jo8zgdp0jo/images/stencil/1280x1280/products/105764/75189/image_file__95957.1740460051.jpg?c=1",
+    "saved_path": "assets/covers/knot-of-the-soul.jpg",
+    "bytes": 160870,
+    "dims": [
+      853,
+      1280
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "laboratory-life",
+    "title": "Laboratory Life",
+    "author": "Bruno Latour & Steve Woolgar",
+    "year": "1986",
+    "publisher": "Princeton University Press",
+    "isbn": "9780691028323",
+    "source_page": "https://press.princeton.edu/books/paperback/9780691028323/laboratory-life",
+    "cover_url": "https://pup-assets.imgix.net/onix/images/9780691028323.jpg?w=1500&auto=format",
+    "saved_path": "assets/covers/laboratory-life.jpg",
+    "bytes": 243507,
+    "dims": [
+      1500,
+      2318
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "marginal-gains",
+    "title": "Marginal Gains",
+    "author": "Jane I. Guyer",
+    "year": "2004",
+    "publisher": "University of Chicago Press",
+    "isbn": "9780226311166",
+    "source_page": "https://www.bibliovault.org/BV.book.epl?ISBN=9780226311166",
+    "cover_url": "https://bibliovault.org/thumbs/978-0-226-31116-6-frontcover.jpg",
+    "saved_path": "assets/covers/marginal-gains.jpg",
+    "bytes": 323602,
+    "dims": [
+      811,
+      1200
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "life-and-death-on-mt-everest",
+    "title": "Life and Death on Mt. Everest",
+    "author": "Sherry B. Ortner",
+    "year": "1999",
+    "publisher": "Princeton University Press",
+    "isbn": "9780691074481",
+    "source_page": "https://press.princeton.edu/books/paperback/9780691074481/life-and-death-on-mt-everest",
+    "cover_url": "https://pup-assets.imgix.net/onix/images/9780691074481.jpg?w=1500&auto=format",
+    "saved_path": "assets/covers/life-and-death-on-mt-everest.jpg",
+    "bytes": 423875,
+    "dims": [
+      1500,
+      2265
+    ],
+    "status": "ok",
+    "error": null
+  }
+]

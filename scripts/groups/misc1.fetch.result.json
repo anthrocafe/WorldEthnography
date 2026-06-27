@@ -1,0 +1,200 @@
+[
+  {
+    "slug": "flight-ways",
+    "title": "Flight Ways",
+    "author": "Thom van Dooren",
+    "year": "2014",
+    "publisher": "Columbia University Press",
+    "isbn": "9780231166188",
+    "source_page": "https://cup.columbia.edu/book/flight-ways/9780231166188/",
+    "cover_url": "https://cup-us.imgix.net/covers/9780231166188.jpg?w=1200&auto=format",
+    "saved_path": "assets/covers/flight-ways.jpg",
+    "bytes": 104172,
+    "dims": [
+      1200,
+      1800
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "living-with-herds",
+    "title": "Living with Herds",
+    "author": "Natasha Fijn",
+    "year": "2011",
+    "publisher": "Cambridge University Press",
+    "isbn": "9781107000902",
+    "source_page": "https://www.cambridge.org/core/books/living-with-herds/C1A08F043D92165935396D056581C1A8",
+    "cover_url": "https://assets.cambridge.org/97811070/00902/cover/9781107000902.jpg",
+    "saved_path": null,
+    "bytes": 53875,
+    "dims": [
+      180,
+      263
+    ],
+    "status": "error",
+    "error": "too small dims (180, 263)"
+  },
+  {
+    "slug": "the-subject-of-virtue",
+    "title": "The Subject of Virtue",
+    "author": "James Laidlaw",
+    "year": "2013",
+    "publisher": "Cambridge University Press",
+    "isbn": "9781107697317",
+    "source_page": "https://www.cambridge.org/gb/universitypress/subjects/anthropology/anthropological-theory/subject-virtue-anthropology-ethics-and-freedom",
+    "cover_url": "https://assets.cambridge.org/97811076/97317/cover/9781107697317.jpg",
+    "saved_path": null,
+    "bytes": 17598,
+    "dims": [
+      180,
+      272
+    ],
+    "status": "error",
+    "error": "too small dims (180, 272)"
+  },
+  {
+    "slug": "on-the-move-for-love",
+    "title": "On the Move for Love",
+    "author": "Sealing Cheng（鄭詩靈）",
+    "year": "2010",
+    "publisher": "University of Pennsylvania Press",
+    "isbn": "9780812242171",
+    "source_page": "https://www.pennpress.org/9780812242171/on-the-move-for-love/",
+    "cover_url": "https://www.degruyterbrill.com/document/cover/isbn/9780812206920/original",
+    "saved_path": "assets/covers/on-the-move-for-love.jpg",
+    "bytes": 66017,
+    "dims": [
+      529,
+      800
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "the-anxieties-of-mobility",
+    "title": "The Anxieties of Mobility",
+    "author": "Johan Lindquist",
+    "year": "2009",
+    "publisher": "University of Hawai'i Press",
+    "isbn": "9780824833152",
+    "source_page": "https://uhpress.hawaii.edu/title/the-anxieties-of-mobility-migration-and-tourism-in-the-indonesian-borderlands/",
+    "cover_url": "https://uhpress.hawaii.edu/wp-content/uploads/2025/05/9780824833152.jpg",
+    "saved_path": "assets/covers/the-anxieties-of-mobility.jpg",
+    "bytes": 574566,
+    "dims": [
+      1013,
+      1500
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "shaving-the-beasts",
+    "title": "Shaving the Beasts",
+    "author": "John Hartigan Jr.",
+    "year": "2020",
+    "publisher": "University of Minnesota Press",
+    "isbn": "9781517904746",
+    "source_page": "https://www.upress.umn.edu/9781517904746/shaving-the-beasts/",
+    "cover_url": "https://minnesota-us.imgix.net/covers/9781517904746.jpg?w=1200&auto=format",
+    "saved_path": "assets/covers/shaving-the-beasts.jpg",
+    "bytes": 211743,
+    "dims": [
+      1200,
+      1856
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "the-anti-politics-machine",
+    "title": "The Anti-Politics Machine",
+    "author": "James Ferguson",
+    "year": "1990",
+    "publisher": "University of Minnesota Press",
+    "isbn": "9780816624379",
+    "source_page": "https://www.upress.umn.edu/9780816624379/anti-politics-machine/",
+    "cover_url": "https://minnesota-us.imgix.net/covers/9780816624379.jpg?w=1200&auto=format",
+    "saved_path": "assets/covers/the-anti-politics-machine.jpg",
+    "bytes": 111368,
+    "dims": [
+      1200,
+      1841
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "algeria-in-france",
+    "title": "Algeria in France",
+    "author": "Paul Silverstein",
+    "year": "2004",
+    "publisher": "Indiana University Press",
+    "isbn": "9780253217127",
+    "source_page": "https://iupress.org/9780253217127/algeria-in-france/",
+    "cover_url": "https://ingram-indiana.imgix.net/covers/9780253217127.jpg",
+    "saved_path": "assets/covers/algeria-in-france.jpg",
+    "bytes": 253864,
+    "dims": [
+      1193,
+      1800
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "the-performance-of-human-rights-in-morocco",
+    "title": "The Performance of Human Rights in Morocco",
+    "author": "Susan Slyomovics",
+    "year": "2005",
+    "publisher": "University of Pennsylvania Press",
+    "isbn": "9780812219043",
+    "source_page": "https://www.pennpress.org/9780812219043/the-performance-of-human-rights-in-morocco/",
+    "cover_url": "https://syndetics.com/index.aspx?isbn=9780812219043/LC.JPG&client=primo",
+    "saved_path": null,
+    "bytes": 18996,
+    "dims": [
+      265,
+      400
+    ],
+    "status": "error",
+    "error": "too small dims (265, 400)"
+  },
+  {
+    "slug": "lost-people-magic-and-the-legacy-of-slavery-in-madagascar",
+    "title": "Lost People: Magic and the Legacy of Slavery in Madagascar",
+    "author": "David Graeber",
+    "year": "2007",
+    "publisher": "Indiana University Press",
+    "isbn": "9780253219152",
+    "source_page": "https://iupress.org/9780253219152/lost-people/",
+    "cover_url": "https://ingram-indiana.imgix.net/covers/9780253219152.jpg",
+    "saved_path": "assets/covers/lost-people-magic-and-the-legacy-of-slavery-in-madagascar.jpg",
+    "bytes": 307442,
+    "dims": [
+      1199,
+      1800
+    ],
+    "status": "ok",
+    "error": null
+  },
+  {
+    "slug": "hunters-pastoralists-and-ranchers",
+    "title": "Hunters, Pastoralists and Ranchers",
+    "author": "Tim Ingold",
+    "year": "1980",
+    "publisher": "Cambridge University Press",
+    "isbn": "9780521225885",
+    "source_page": "https://www.cambridge.org/core/books/hunters-pastoralists-and-ranchers/DD9EBBF541204F70EC17D2D90E0E6E71",
+    "cover_url": "https://assets.cambridge.org/97805213/58873/cover/9780521358873.jpg",
+    "saved_path": null,
+    "bytes": 35608,
+    "dims": [
+      180,
+      270
+    ],
+    "status": "error",
+    "error": "too small dims (180, 270)"
+  }
+]
