@@ -1047,60 +1047,51 @@ function resetBookmarkCardState() {
 
 let bookCardCoverCrossfadeToken = 0;
 
-function crossfadeBookCardCover(newSrc) {
-  if (!bookCardCover || prefersReducedMotion) {
-    if (bookCardCover) {
-      bookCardCover.src = newSrc;
-      bindBookmarkCoverLoadSync();
-    }
-    return;
-  }
-  if ((bookCardCover.getAttribute("src") || "") === newSrc) return;
+function replaceBookCardCoverSrc(newSrc, { fade = false } = {}) {
+  if (!bookCardCover) return;
 
   const token = ++bookCardCoverCrossfadeToken;
-  bookCardCover.classList.remove("is-cover-fade-in", "is-cover-fade-out");
-
-  const applySrc = () => {
-    if (token !== bookCardCoverCrossfadeToken) return;
-    bookCardCover.src = newSrc;
+  const currentSrc = bookCardCover.getAttribute("src") || "";
+  if (currentSrc === newSrc) {
+    bookCardCover.classList.remove("is-cover-fade-out", "is-cover-fade-in");
     bindBookmarkCoverLoadSync();
-  };
+    return;
+  }
 
-  const preload = new Image();
-  preload.onload = () => {
+  bookCardCover.classList.remove("is-cover-fade-in");
+  if (currentSrc) bookCardCover.classList.add("is-cover-fade-out");
+
+  const reveal = () => {
     if (token !== bookCardCoverCrossfadeToken) return;
-
-    const swap = () => {
-      if (token !== bookCardCoverCrossfadeToken) return;
-      bookCardCover.removeEventListener("transitionend", swap);
-      applySrc();
-      bookCardCover.classList.remove("is-cover-fade-out");
+    bookCardCover.classList.remove("is-cover-fade-out");
+    if (fade && !prefersReducedMotion) {
       void bookCardCover.offsetWidth;
       bookCardCover.classList.add("is-cover-fade-in");
       const cleanup = () => {
-        bookCardCover.removeEventListener("transitionend", cleanup);
         bookCardCover.classList.remove("is-cover-fade-in");
       };
       bookCardCover.addEventListener("transitionend", cleanup, { once: true });
-      window.setTimeout(() => {
-        if (token !== bookCardCoverCrossfadeToken) return;
-        cleanup();
-      }, 320);
-    };
+      window.setTimeout(cleanup, 320);
+    }
+    bindBookmarkCoverLoadSync();
+  };
 
-    bookCardCover.classList.add("is-cover-fade-out");
-    bookCardCover.addEventListener("transitionend", swap, { once: true });
-    window.setTimeout(() => {
-      if (token !== bookCardCoverCrossfadeToken) return;
-      if (bookCardCover.classList.contains("is-cover-fade-out")) swap();
-    }, 320);
-  };
-  preload.onerror = () => {
+  const commit = () => {
     if (token !== bookCardCoverCrossfadeToken) return;
-    applySrc();
-    bookCardCover.classList.remove("is-cover-fade-out", "is-cover-fade-in");
+    bookCardCover.src = newSrc;
+    if (bookCardCover.complete && bookCardCover.naturalWidth) reveal();
+    else bookCardCover.addEventListener("load", reveal, { once: true });
   };
+
+  const preload = new Image();
+  preload.onload = commit;
+  preload.onerror = commit;
   preload.src = newSrc;
+  if (preload.complete) commit();
+}
+
+function crossfadeBookCardCover(newSrc) {
+  replaceBookCardCoverSrc(newSrc, { fade: true });
 }
 
 function setBookCardCoverImage(book, { animate = false } = {}) {
@@ -1115,10 +1106,13 @@ function setBookCardCoverImage(book, { animate = false } = {}) {
   bookCardCoverWrap.hidden = false;
 
   const currentSrc = bookCardCover.getAttribute("src") || "";
-  if (!animate || !currentSrc || currentSrc === newSrc) {
+  if (currentSrc === newSrc) {
     bookCardCover.classList.remove("is-cover-fade-out", "is-cover-fade-in");
-    bookCardCover.src = newSrc;
     bindBookmarkCoverLoadSync();
+    return;
+  }
+  if (!animate || !currentSrc) {
+    replaceBookCardCoverSrc(newSrc, { fade: false });
     return;
   }
   crossfadeBookCardCover(newSrc);
@@ -3507,6 +3501,7 @@ function setCardBook(group, bookIndex, options = {}) {
   const safeIndex = ((bookIndex % items.length) + items.length) % items.length;
   const item = items[safeIndex];
   const book = item.book;
+  const previousBookId = bookCard.dataset.bookId || "";
   const wasExpanded = isBookmarkCardExpanded();
   const wasBookmark = isBookmarkCardOpen();
 
@@ -3531,7 +3526,7 @@ function setCardBook(group, bookIndex, options = {}) {
   bookCard.classList.toggle("book-card--title-single-line", BOOK_CARD_TITLE_SINGLE_LINE_IDS.has(book.id));
 
   invalidateBookmarkPanelMeasureCache();
-  const bookChanged = book.id !== (bookCard.dataset.bookId || "");
+  const bookChanged = book.id !== previousBookId;
   const animateCover =
     options.animateCover ??
     (wasBookmark && !bookChanged && (wasExpanded || safeIndex > 0));
