@@ -3710,11 +3710,7 @@ function setCardBook(group, bookIndex, options = {}) {
     (wasBookmark && !bookChanged && (wasExpanded || safeIndex > 0));
   if (applyBookmarkCardMode(book, { animateCover })) {
     if (options.expandImmediately) {
-      state.bookmarkExpandBlend = 0;
-      state.bookmarkExpandTarget = 0;
-      bookCard.classList.add("is-bookmark-expanded");
-      bookCard.style.setProperty("--bookmark-expand", "0");
-      delete bookCard.dataset.anchorMode;
+      setBookmarkExpandState(true, { immediate: true });
     } else {
       const shouldExpand = safeIndex > 0 || wasExpanded;
       setBookmarkExpandState(shouldExpand, { immediate: shouldExpand });
