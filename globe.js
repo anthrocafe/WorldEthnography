@@ -681,8 +681,11 @@ function measureDistantSimilarityExpandedCardWidth(book, coverW, normalizedQuery
 
 function applyDistantSimilaritySlotLayout(slot, book, normalizedQuery = state.searchQuery) {
   if (isMobilePortrait()) {
-    applyDistantSimilarityMobileCardLayout(slot, book);
-    return;
+    slot.classList.add("is-mobile-portrait");
+    if (slot.classList.contains("is-expanded")) {
+      applyDistantSimilarityMobileCardLayout(slot, book);
+      return;
+    }
   }
   const m = computeDistantSimilarityMetrics(book);
   const cardW = measureDistantSimilarityExpandedCardWidth(book, m.coverW, normalizedQuery);
@@ -840,12 +843,6 @@ function createDistantSimilaritySlot(book, normalizedQuery) {
 
   slot.appendChild(loc);
   slot.appendChild(stage);
-
-  if (isMobilePortrait()) {
-    slot.classList.add("is-mobile-card-only");
-    setExpanded(true);
-  }
-
   return slot;
 }
 
@@ -1247,8 +1244,7 @@ function applyBookmarkCardMode(book, { animateCover = false } = {}) {
     return false;
   }
   bookCard.classList.add("book-card--bookmark");
-  if (isMobilePortrait() && bookCardCoverWrap) bookCardCoverWrap.hidden = true;
-  setBookCardCoverImage(book, { animate: animateCover && !isMobilePortrait() });
+  setBookCardCoverImage(book, { animate: animateCover });
   if (bookCardBookmarkHint) bookCardBookmarkHint.hidden = true;
   return true;
 }
@@ -1257,6 +1253,7 @@ function expandBookmarkCard() {
   if (!isBookmarkCardOpen() || isBookmarkCardExpanded()) return;
   setBookmarkExpandState(true, { animatePull: true });
   syncBookCardLayout();
+  if (isMobilePortrait()) positionBookmarkExpandedBookCard();
 }
 
 function fallbackEnglishLocation(book) {
@@ -1916,12 +1913,6 @@ function createRegionCoverBookmarkPeek(item, slug) {
 
 function buildRegionCoverLayer() {
   if (!regionCoverLayer || !state.focusRegionId) return;
-  if (isMobilePortrait()) {
-    regionCoverLayer.innerHTML = "";
-    state.coverLayerBuiltFor = null;
-    state.coverLayoutReady = false;
-    return;
-  }
   const sig = regionCoverLayerBuildSignature();
   if (state.coverLayerBuiltFor === sig) return;
 
@@ -1983,7 +1974,7 @@ function buildRegionCoverLayer() {
         state.selectedBookIndex = idx;
         const x = Number(btn.dataset.coverX) || state.width * 0.5;
         const y = Number(btn.dataset.coverY) || state.height * 0.5;
-        openBookCard(g, x, y, idx, { expandImmediately: true });
+        openBookCard(g, x, y, idx, { expandImmediately: !isMobilePortrait() });
         bookCard.dataset.anchorMode = "cover";
       });
 
@@ -3534,7 +3525,7 @@ function tryFinalizeGlobePointer(event) {
       state.selectedBookId = selected.book.id;
       state.selectedSiteIndex = selected.siteIndex;
       const expandImmediately =
-        state.focusMode && bookSupportsBookmarkCover(selected.book);
+        state.focusMode && bookSupportsBookmarkCover(selected.book) && !isMobilePortrait();
       openBookCard(hit.group, hit.x, hit.y, 0, { expandImmediately });
       return;
     }
@@ -3651,14 +3642,7 @@ function setCardBook(group, bookIndex, options = {}) {
     options.animateCover ??
     (wasBookmark && !bookChanged && (wasExpanded || safeIndex > 0));
   if (applyBookmarkCardMode(book, { animateCover })) {
-    if (isMobilePortrait()) {
-      state.bookmarkExpandBlend = 1;
-      state.bookmarkExpandTarget = 1;
-      bookCard.classList.add("is-bookmark-expanded", "book-card--mobile-card-only");
-      bookCard.style.setProperty("--bookmark-expand", "1");
-      if (bookCardCoverWrap) bookCardCoverWrap.hidden = true;
-      delete bookCard.dataset.anchorMode;
-    } else if (options.expandImmediately) {
+    if (options.expandImmediately) {
       state.bookmarkExpandBlend = 0;
       state.bookmarkExpandTarget = 0;
       bookCard.classList.add("is-bookmark-expanded");
@@ -3753,6 +3737,14 @@ function bookmarkPeekPanelWidth() {
 }
 
 function bookmarkExpandedBlockLayout(margin, gap, mobile) {
+  if (isMobilePortrait()) {
+    const maxCardH = clamp(state.height - margin * 2 - 96, 200, state.height - 88);
+    const panelW = state.width - margin * 2;
+    const contentH = measureBookmarkExpandedPanelHeight(panelW, maxCardH);
+    const blockH = Math.min(contentH, maxCardH);
+    return { blockH, coverW: 0, panelW, maxBlockH: maxCardH };
+  }
+
   const aspect = bookmarkCoverAspect();
   const minBlockH = mobile ? 82 : 96;
   const maxBlockH = clamp(
@@ -3783,48 +3775,19 @@ function bookmarkExpandedBlockLayout(margin, gap, mobile) {
   return { blockH, coverW, panelW, maxBlockH };
 }
 
-function bookmarkMobileCardOnlyMetrics() {
-  const margin = 14;
-  const reservedBottom = Math.max(64, Math.min(96, state.height * 0.1));
-  const reservedTop = 44;
-  const maxCardH = clamp(state.height - margin * 2 - reservedBottom - reservedTop, 200, state.height - 88);
-  const cardW = state.width - margin * 2;
-  const panelW = cardW;
-  const panelH = measureBookmarkExpandedPanelHeight(panelW, maxCardH);
-  const cardH = Math.min(panelH, maxCardH);
-
-  return {
-    t: 1,
-    margin,
-    gap: 0,
-    coverW: 0,
-    coverH: 0,
-    coverTop: 0,
-    panelW,
-    panelH: cardH,
-    panelLeft: 0,
-    panelTop: 0,
-    cardW,
-    cardH,
-    expandedBlockH: cardH,
-  };
-}
-
 function bookmarkLayoutMetrics(rawT = state.bookmarkExpandBlend) {
-  if (isMobilePortrait()) {
-    return bookmarkMobileCardOnlyMetrics();
-  }
   const t = bookmarkEase(rawT);
   const margin = state.width <= 760 ? 14 : 18;
   const gap = state.width <= 760 ? 12 : 18;
   const mobile = state.width <= 760;
+  const mobilePortrait = isMobilePortrait();
   const aspect = bookmarkCoverAspect();
 
   const panelPeekW = clamp(bookmarkPeekPanelWidth(), mobile ? 154 : 188, mobile ? state.width - margin * 2 : 360);
   const peekCoverW = clamp(
-    Math.max(state.width * (mobile ? 0.38 : 0.16), panelPeekW + (mobile ? 22 : 28)),
+    Math.max(state.width * (mobilePortrait ? 0.5 : mobile ? 0.38 : 0.16), panelPeekW + (mobile ? 22 : 28)),
     mobile ? 146 : 190,
-    mobile ? Math.min(220, state.width - margin * 2) : 380
+    mobilePortrait ? Math.min(236, state.width - margin * 2) : mobile ? Math.min(220, state.width - margin * 2) : 380
   );
   const peekCoverH = peekCoverW / aspect;
   const peekTabH = clamp(mobile ? 82 : 90, 78, Math.min(108, peekCoverH * 0.34));
@@ -3839,7 +3802,7 @@ function bookmarkLayoutMetrics(rawT = state.bookmarkExpandBlend) {
   const coverTop = lerp(peekTabH, 0, t);
 
   const panelW = lerp(panelPeekW, panelExpandedW, t);
-  const panelLeft = lerp(peekCoverW - panelPeekW, coverW + gap, t);
+  const panelLeft = lerp(peekCoverW - panelPeekW, mobilePortrait ? 0 : coverW + gap, t);
   const panelTop = 0;
   const panelH = lerp(peekTabH, panelExpandedH, t);
   const cardW = Math.max(coverW, panelLeft + panelW);
@@ -3875,10 +3838,13 @@ function syncBookmarkCardMetrics(rawT = state.bookmarkExpandBlend) {
   bookCard.style.setProperty("--bookmark-panel-top", `${m.panelTop}px`);
   bookCard.style.setProperty("--bookmark-panel-w", `${m.panelW}px`);
   bookCard.style.setProperty("--bookmark-panel-h", `${m.panelH}px`);
-  bookCard.classList.toggle("book-card--mobile-card-only", isMobilePortrait());
+  bookCard.classList.toggle(
+    "book-card--mobile-card-only",
+    isMobilePortrait() && isBookmarkCardExpanded()
+  );
   bookCard.classList.toggle(
     "book-card--bookmark-panel-scroll",
-    isMobilePortrait() ||
+    (isMobilePortrait() && isBookmarkCardExpanded()) ||
       (isBookmarkCardExpanded() && bookmarkPanelMeasureCacheFullH > m.coverH + 1)
   );
   return m;
@@ -3890,13 +3856,13 @@ function bookmarkExpandedCenterX() {
 
 function positionBookmarkExpandedBookCard() {
   if (!bookCard.classList.contains("book-card--bookmark")) return;
+  syncBookmarkCardMetrics(1) || bookmarkLayoutMetrics(1);
   if (isMobilePortrait()) {
     bookCard.style.left = `${state.width * 0.5}px`;
     bookCard.style.top = `${state.height * 0.5}px`;
     bookCard.style.transform = "translate(-50%, -50%)";
     return;
   }
-  syncBookmarkCardMetrics(1) || bookmarkLayoutMetrics(1);
   bookCard.style.left = `${bookmarkExpandedCenterX()}px`;
   bookCard.style.top = `${state.height * 0.5}px`;
   bookCard.style.transform = "translate(-50%, -50%)";
@@ -3952,7 +3918,7 @@ function openBookCard(group, x, y, bookIndex = 0, options = {}) {
   requestAnimationFrame(() => {
     if (bookCard.classList.contains("is-hidden")) return;
     if (bookCard.classList.contains("book-card--bookmark")) {
-      if (isMobilePortrait() || isBookmarkCardExpanded()) positionBookmarkExpandedBookCard();
+      if (isBookmarkCardExpanded()) positionBookmarkExpandedBookCard();
       else syncBookmarkCardPosition();
     } else {
       clampBookCardToViewport();
@@ -4031,10 +3997,6 @@ function switchCardBook(delta) {
 }
 
 function syncBookmarkCardPosition() {
-  if (isMobilePortrait()) {
-    positionBookmarkExpandedBookCard();
-    return;
-  }
   const groupKey = bookCard.dataset.groupKey;
   const pin = projectedPins.find((item) => item.groupKey === groupKey);
   if (!pin || pin.z <= 0.03) {
