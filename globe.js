@@ -1045,6 +1045,8 @@ function resetBookmarkCardState() {
   if (bookCardCover) bookCardCover.classList.remove("is-cover-fade-out", "is-cover-fade-in");
 }
 
+let bookCardCoverCrossfadeToken = 0;
+
 function crossfadeBookCardCover(newSrc) {
   if (!bookCardCover || prefersReducedMotion) {
     if (bookCardCover) {
@@ -1055,33 +1057,50 @@ function crossfadeBookCardCover(newSrc) {
   }
   if ((bookCardCover.getAttribute("src") || "") === newSrc) return;
 
-  bookCardCover.classList.remove("is-cover-fade-in");
-  bookCardCover.classList.add("is-cover-fade-out");
+  const token = ++bookCardCoverCrossfadeToken;
+  bookCardCover.classList.remove("is-cover-fade-in", "is-cover-fade-out");
 
-  const swap = () => {
-    bookCardCover.removeEventListener("transitionend", swap);
-    const preload = new Image();
-    preload.onload = () => {
-      bookCardCover.src = newSrc;
+  const applySrc = () => {
+    if (token !== bookCardCoverCrossfadeToken) return;
+    bookCardCover.src = newSrc;
+    bindBookmarkCoverLoadSync();
+  };
+
+  const preload = new Image();
+  preload.onload = () => {
+    if (token !== bookCardCoverCrossfadeToken) return;
+
+    const swap = () => {
+      if (token !== bookCardCoverCrossfadeToken) return;
+      bookCardCover.removeEventListener("transitionend", swap);
+      applySrc();
       bookCardCover.classList.remove("is-cover-fade-out");
       void bookCardCover.offsetWidth;
       bookCardCover.classList.add("is-cover-fade-in");
-      bindBookmarkCoverLoadSync();
       const cleanup = () => {
         bookCardCover.removeEventListener("transitionend", cleanup);
         bookCardCover.classList.remove("is-cover-fade-in");
       };
       bookCardCover.addEventListener("transitionend", cleanup, { once: true });
+      window.setTimeout(() => {
+        if (token !== bookCardCoverCrossfadeToken) return;
+        cleanup();
+      }, 320);
     };
-    preload.onerror = () => {
-      bookCardCover.src = newSrc;
-      bookCardCover.classList.remove("is-cover-fade-out", "is-cover-fade-in");
-      bindBookmarkCoverLoadSync();
-    };
-    preload.src = newSrc;
-  };
 
-  bookCardCover.addEventListener("transitionend", swap, { once: true });
+    bookCardCover.classList.add("is-cover-fade-out");
+    bookCardCover.addEventListener("transitionend", swap, { once: true });
+    window.setTimeout(() => {
+      if (token !== bookCardCoverCrossfadeToken) return;
+      if (bookCardCover.classList.contains("is-cover-fade-out")) swap();
+    }, 320);
+  };
+  preload.onerror = () => {
+    if (token !== bookCardCoverCrossfadeToken) return;
+    applySrc();
+    bookCardCover.classList.remove("is-cover-fade-out", "is-cover-fade-in");
+  };
+  preload.src = newSrc;
 }
 
 function setBookCardCoverImage(book, { animate = false } = {}) {
@@ -3512,14 +3531,17 @@ function setCardBook(group, bookIndex, options = {}) {
   bookCard.classList.toggle("book-card--title-single-line", BOOK_CARD_TITLE_SINGLE_LINE_IDS.has(book.id));
 
   invalidateBookmarkPanelMeasureCache();
-  const animateCover = options.animateCover ?? (wasBookmark && (wasExpanded || safeIndex > 0));
+  const bookChanged = book.id !== (bookCard.dataset.bookId || "");
+  const animateCover =
+    options.animateCover ??
+    (wasBookmark && !bookChanged && (wasExpanded || safeIndex > 0));
   if (applyBookmarkCardMode(book, { animateCover })) {
     if (options.expandImmediately) {
       state.bookmarkExpandBlend = 0;
-      state.bookmarkExpandTarget = 1;
+      state.bookmarkExpandTarget = 0;
       bookCard.classList.add("is-bookmark-expanded");
       bookCard.style.setProperty("--bookmark-expand", "0");
-      bookCard.dataset.anchorMode = "bookmark-expanded";
+      delete bookCard.dataset.anchorMode;
     } else {
       const shouldExpand = safeIndex > 0 || wasExpanded;
       setBookmarkExpandState(shouldExpand, { immediate: shouldExpand });
