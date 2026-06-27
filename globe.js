@@ -680,6 +680,10 @@ function measureDistantSimilarityExpandedCardWidth(book, coverW, normalizedQuery
 }
 
 function applyDistantSimilaritySlotLayout(slot, book, normalizedQuery = state.searchQuery) {
+  if (isMobilePortrait()) {
+    applyDistantSimilarityMobileCardLayout(slot, book);
+    return;
+  }
   const m = computeDistantSimilarityMetrics(book);
   const cardW = measureDistantSimilarityExpandedCardWidth(book, m.coverW, normalizedQuery);
   const expanded = slot.classList.contains("is-expanded");
@@ -695,6 +699,26 @@ function applyDistantSimilaritySlotLayout(slot, book, normalizedQuery = state.se
   slot.style.setProperty("--ds-panel-left", `${coverOffset + m.panelLeft}px`);
   slot.style.setProperty("--ds-card-w", `${cardW}px`);
   slot.style.setProperty("--ds-card-left", `${(slotW - cardW) / 2}px`);
+}
+
+function applyDistantSimilarityMobileCardLayout(slot, book) {
+  const margin = 14;
+  const pairGap = 12;
+  const captionReserve = 80;
+  const topReserve = 52;
+  const available = state.height - captionReserve - topReserve - margin * 2;
+  const cardW = state.width - margin * 2;
+  const cardH = clamp(Math.floor((available - pairGap) / 2), 148, 280);
+
+  slot.style.setProperty("--ds-slot-w", `${cardW}px`);
+  slot.style.setProperty("--ds-cover-w", "0px");
+  slot.style.setProperty("--ds-cover-h", "0px");
+  slot.style.setProperty("--ds-tab-h", "0px");
+  slot.style.setProperty("--ds-shell-h", `${cardH}px`);
+  slot.style.setProperty("--ds-panel-w", `${cardW}px`);
+  slot.style.setProperty("--ds-panel-left", "0px");
+  slot.style.setProperty("--ds-card-w", `${cardW}px`);
+  slot.style.setProperty("--ds-card-left", "0px");
 }
 
 function buildDistantSimilarityCardHtml(book, normalizedQuery) {
@@ -816,6 +840,12 @@ function createDistantSimilaritySlot(book, normalizedQuery) {
 
   slot.appendChild(loc);
   slot.appendChild(stage);
+
+  if (isMobilePortrait()) {
+    slot.classList.add("is-mobile-card-only");
+    setExpanded(true);
+  }
+
   return slot;
 }
 
@@ -1106,7 +1136,7 @@ function resetBookmarkCardState() {
   state.bookmarkExpandTarget = 0;
   invalidateBookmarkPanelMeasureCache();
   if (!bookCard) return;
-  bookCard.classList.remove("book-card--bookmark", "is-bookmark-expanded", "is-bookmark-pulling");
+  bookCard.classList.remove("book-card--bookmark", "is-bookmark-expanded", "is-bookmark-pulling", "book-card--mobile-card-only");
   bookCard.style.removeProperty("--bookmark-expand");
   if (bookCardBookmarkHint) bookCardBookmarkHint.hidden = true;
   if (bookCardCoverWrap) bookCardCoverWrap.hidden = true;
@@ -1217,7 +1247,8 @@ function applyBookmarkCardMode(book, { animateCover = false } = {}) {
     return false;
   }
   bookCard.classList.add("book-card--bookmark");
-  setBookCardCoverImage(book, { animate: animateCover });
+  if (isMobilePortrait() && bookCardCoverWrap) bookCardCoverWrap.hidden = true;
+  setBookCardCoverImage(book, { animate: animateCover && !isMobilePortrait() });
   if (bookCardBookmarkHint) bookCardBookmarkHint.hidden = true;
   return true;
 }
@@ -1521,6 +1552,7 @@ function resize() {
   canvas.style.width = `${state.width}px`;
   canvas.style.height = `${state.height}px`;
   ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+  syncMobilePortraitClass();
 
   const shortSide = Math.min(state.width, state.height);
   state.layoutRadiusDefault = shortSide * (state.width < 760 ? 0.82 : 0.86);
@@ -1884,6 +1916,12 @@ function createRegionCoverBookmarkPeek(item, slug) {
 
 function buildRegionCoverLayer() {
   if (!regionCoverLayer || !state.focusRegionId) return;
+  if (isMobilePortrait()) {
+    regionCoverLayer.innerHTML = "";
+    state.coverLayerBuiltFor = null;
+    state.coverLayoutReady = false;
+    return;
+  }
   const sig = regionCoverLayerBuildSignature();
   if (state.coverLayerBuiltFor === sig) return;
 
@@ -1964,6 +2002,14 @@ function isGlobalBookCardOpen() {
 
 function isMobileFocusLayout() {
   return state.width <= 760 || window.matchMedia("(max-width: 760px)").matches;
+}
+
+function isMobilePortrait() {
+  return isMobileFocusLayout() && state.height >= state.width;
+}
+
+function syncMobilePortraitClass() {
+  document.body.classList.toggle("is-mobile-portrait", isMobilePortrait());
 }
 
 function isMobileFocusCoverLayout() {
@@ -3605,7 +3651,14 @@ function setCardBook(group, bookIndex, options = {}) {
     options.animateCover ??
     (wasBookmark && !bookChanged && (wasExpanded || safeIndex > 0));
   if (applyBookmarkCardMode(book, { animateCover })) {
-    if (options.expandImmediately) {
+    if (isMobilePortrait()) {
+      state.bookmarkExpandBlend = 1;
+      state.bookmarkExpandTarget = 1;
+      bookCard.classList.add("is-bookmark-expanded", "book-card--mobile-card-only");
+      bookCard.style.setProperty("--bookmark-expand", "1");
+      if (bookCardCoverWrap) bookCardCoverWrap.hidden = true;
+      delete bookCard.dataset.anchorMode;
+    } else if (options.expandImmediately) {
       state.bookmarkExpandBlend = 0;
       state.bookmarkExpandTarget = 0;
       bookCard.classList.add("is-bookmark-expanded");
@@ -3730,7 +3783,37 @@ function bookmarkExpandedBlockLayout(margin, gap, mobile) {
   return { blockH, coverW, panelW, maxBlockH };
 }
 
+function bookmarkMobileCardOnlyMetrics() {
+  const margin = 14;
+  const reservedBottom = Math.max(64, Math.min(96, state.height * 0.1));
+  const reservedTop = 44;
+  const maxCardH = clamp(state.height - margin * 2 - reservedBottom - reservedTop, 200, state.height - 88);
+  const cardW = state.width - margin * 2;
+  const panelW = cardW;
+  const panelH = measureBookmarkExpandedPanelHeight(panelW, maxCardH);
+  const cardH = Math.min(panelH, maxCardH);
+
+  return {
+    t: 1,
+    margin,
+    gap: 0,
+    coverW: 0,
+    coverH: 0,
+    coverTop: 0,
+    panelW,
+    panelH: cardH,
+    panelLeft: 0,
+    panelTop: 0,
+    cardW,
+    cardH,
+    expandedBlockH: cardH,
+  };
+}
+
 function bookmarkLayoutMetrics(rawT = state.bookmarkExpandBlend) {
+  if (isMobilePortrait()) {
+    return bookmarkMobileCardOnlyMetrics();
+  }
   const t = bookmarkEase(rawT);
   const margin = state.width <= 760 ? 14 : 18;
   const gap = state.width <= 760 ? 12 : 18;
@@ -3792,9 +3875,11 @@ function syncBookmarkCardMetrics(rawT = state.bookmarkExpandBlend) {
   bookCard.style.setProperty("--bookmark-panel-top", `${m.panelTop}px`);
   bookCard.style.setProperty("--bookmark-panel-w", `${m.panelW}px`);
   bookCard.style.setProperty("--bookmark-panel-h", `${m.panelH}px`);
+  bookCard.classList.toggle("book-card--mobile-card-only", isMobilePortrait());
   bookCard.classList.toggle(
     "book-card--bookmark-panel-scroll",
-    isBookmarkCardExpanded() && bookmarkPanelMeasureCacheFullH > m.coverH + 1
+    isMobilePortrait() ||
+      (isBookmarkCardExpanded() && bookmarkPanelMeasureCacheFullH > m.coverH + 1)
   );
   return m;
 }
@@ -3805,6 +3890,12 @@ function bookmarkExpandedCenterX() {
 
 function positionBookmarkExpandedBookCard() {
   if (!bookCard.classList.contains("book-card--bookmark")) return;
+  if (isMobilePortrait()) {
+    bookCard.style.left = `${state.width * 0.5}px`;
+    bookCard.style.top = `${state.height * 0.5}px`;
+    bookCard.style.transform = "translate(-50%, -50%)";
+    return;
+  }
   syncBookmarkCardMetrics(1) || bookmarkLayoutMetrics(1);
   bookCard.style.left = `${bookmarkExpandedCenterX()}px`;
   bookCard.style.top = `${state.height * 0.5}px`;
@@ -3860,8 +3951,12 @@ function openBookCard(group, x, y, bookIndex = 0, options = {}) {
   }
   requestAnimationFrame(() => {
     if (bookCard.classList.contains("is-hidden")) return;
-    if (useBookmark) syncBookmarkCardPosition();
-    else clampBookCardToViewport();
+    if (bookCard.classList.contains("book-card--bookmark")) {
+      if (isMobilePortrait() || isBookmarkCardExpanded()) positionBookmarkExpandedBookCard();
+      else syncBookmarkCardPosition();
+    } else {
+      clampBookCardToViewport();
+    }
   });
 }
 
@@ -3936,6 +4031,10 @@ function switchCardBook(delta) {
 }
 
 function syncBookmarkCardPosition() {
+  if (isMobilePortrait()) {
+    positionBookmarkExpandedBookCard();
+    return;
+  }
   const groupKey = bookCard.dataset.groupKey;
   const pin = projectedPins.find((item) => item.groupKey === groupKey);
   if (!pin || pin.z <= 0.03) {
