@@ -747,7 +747,7 @@ function createDistantSimilaritySlot(book, normalizedQuery) {
   let coverImg = null;
   if (slug && COVER_SLUGS_WITH_FILES.has(slug)) {
     coverImg = document.createElement("img");
-    coverImg.src = `./assets/covers/${slug}.jpg`;
+    coverImg.src = coverAssetUrl(slug);
     coverImg.alt = titleZh;
     coverImg.loading = "eager";
     cover.appendChild(coverImg);
@@ -978,6 +978,74 @@ function resolveCoverSlugForBook(book) {
   return COVER_SLUG_BY_BOOK_ID[book.id] || slugifyCoverTitle(englishTitleForCover(book.title));
 }
 
+const coverPrefetchBySlug = new Map();
+
+function coverAssetUrl(slug) {
+  return `./assets/covers/${slug}.jpg`;
+}
+
+function shouldPrefetchCoversAggressively() {
+  const conn = navigator.connection;
+  if (conn?.saveData) return false;
+  const type = conn?.effectiveType;
+  if (type === "slow-2g" || type === "2g") return false;
+  return true;
+}
+
+function prefetchCoverSlug(slug) {
+  if (!slug || !COVER_SLUGS_WITH_FILES.has(slug) || coverPrefetchBySlug.has(slug)) return;
+  const img = new Image();
+  coverPrefetchBySlug.set(slug, img);
+  const onLoad = () => {
+    rememberCoverAspectFromImage(img);
+    if (typeof img.decode === "function") img.decode().catch(() => {});
+  };
+  img.addEventListener("load", onLoad, { once: true });
+  img.src = coverAssetUrl(slug);
+  if (img.complete && img.naturalWidth) onLoad();
+}
+
+function prefetchCoverForBook(book) {
+  prefetchCoverSlug(resolveCoverSlugForBook(book));
+}
+
+function prefetchCoversForGroup(group) {
+  if (!group) return;
+  for (const item of group.items) prefetchCoverForBook(item.book);
+}
+
+function prefetchRegionCovers(regionId) {
+  const region = REGION_FOCUS[regionId];
+  if (!region) return;
+  for (const bookId of region.bookIds) {
+    const book = books.find((item) => item.id === bookId);
+    if (book) prefetchCoverForBook(book);
+  }
+}
+
+function scheduleIdleCoverPrefetch() {
+  if (!shouldPrefetchCoversAggressively()) return;
+  const slugs = [...COVER_SLUGS_WITH_FILES];
+  let index = 0;
+  const batchSize = 3;
+  const step = () => {
+    const end = Math.min(index + batchSize, slugs.length);
+    for (; index < end; index += 1) prefetchCoverSlug(slugs[index]);
+    if (index < slugs.length) {
+      if (typeof window.requestIdleCallback === "function") {
+        window.requestIdleCallback(step, { timeout: 2500 });
+      } else {
+        window.setTimeout(step, 180);
+      }
+    }
+  };
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(step, { timeout: 4000 });
+  } else {
+    window.setTimeout(step, 2000);
+  }
+}
+
 function bookSupportsBookmarkCover(book) {
   if (!book) return false;
   const slug = resolveCoverSlugForBook(book);
@@ -1101,7 +1169,7 @@ function setBookCardCoverImage(book, { animate = false } = {}) {
     bookCardCoverWrap.hidden = true;
     return;
   }
-  const newSrc = `./assets/covers/${slug}.jpg`;
+  const newSrc = coverAssetUrl(slug);
   bookCardCover.alt = splitTranslatedTitle(book.title).zh || book.title;
   bookCardCoverWrap.hidden = false;
 
@@ -1604,6 +1672,8 @@ function beginRegionFocus(regionId) {
   state.focusYawTarget = focusYaw;
   state.focusPitchTarget = pitch;
 
+  prefetchRegionCovers(regionId);
+
   if (prefersReducedMotion) {
     state.focusBlend = 1;
     state.targetYaw = focusYaw;
@@ -1785,9 +1855,9 @@ function createRegionCoverBookmarkPeek(item, slug) {
   const cover = document.createElement("span");
   cover.className = "region-cover-bookmark-cover";
   const img = document.createElement("img");
-  img.src = `./assets/covers/${slug}.jpg`;
+  img.src = coverAssetUrl(slug);
   img.alt = splitTranslatedTitle(item.book.title).zh || item.book.title;
-  img.loading = "lazy";
+  img.loading = "eager";
   img.addEventListener(
     "load",
     () => {
@@ -3489,6 +3559,10 @@ function getHitPin(x, y) {
 
 function updateHoverPin(x, y) {
   const pin = getHitPin(x, y);
+  if (pin) {
+    const group = pinGroups.find((item) => item.key === pin.groupKey);
+    prefetchCoversForGroup(group);
+  }
   hoveredPinId = pin ? pin.groupKey : null;
   hoveredRegionLabelId = !state.focusMode ? getHitRegionLabel(x, y) : null;
   stage.style.cursor = pin || hoveredRegionLabelId ? "pointer" : "grab";
@@ -4066,4 +4140,5 @@ applyLockedTypeScales();
 applyLockedCardTypeScales();
 applyLockedIntroOffsets();
 loadLandData();
+scheduleIdleCoverPrefetch();
 requestAnimationFrame(drawGlobe);
