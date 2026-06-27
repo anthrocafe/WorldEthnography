@@ -2190,9 +2190,17 @@ body.is-drag-hint-visible .drag-hint {
     right: 10px;
   }
 
+  body.is-mobile-portrait.is-region-focus .region-cover-bookmark-panel {
+    box-sizing: border-box;
+    height: auto;
+    min-height: var(--region-bookmark-tab, 36px);
+    padding: 5px 8px;
+    overflow: hidden;
+  }
+
   body.is-mobile-portrait .region-cover-bookmark-title-zh {
-    font-size: clamp(11px, 3.1vw, 13px);
-    line-height: 1.18;
+    font-size: clamp(10px, 2.8vw, 12px);
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

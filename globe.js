@@ -1841,10 +1841,10 @@ function bookForCoverBtn(btn) {
 function computeFocusBookmarkMetrics(book, mobile = isMobileFocusCoverLayout()) {
   const aspect = book ? coverAspectForBook(book) : BOOK_COVER_ASPECT_DEFAULT;
   const denseMobile = isDenseFocusRegionForMobilePortrait();
-  const panelMin = mobile ? (denseMobile ? 112 : 154) : 188;
-  const panelPad = denseMobile ? 34 : FOCUS_BOOKMARK.panelPad;
-  const minLeftGap = denseMobile ? 26 : FOCUS_BOOKMARK.minLeftGap;
-  const minCoverW = mobile ? (denseMobile ? 104 : 146) : 190;
+  const panelMin = mobile ? (denseMobile ? 138 : 154) : 188;
+  const panelPad = denseMobile ? 42 : FOCUS_BOOKMARK.panelPad;
+  const minLeftGap = denseMobile ? 32 : FOCUS_BOOKMARK.minLeftGap;
+  const minCoverW = mobile ? (denseMobile ? 132 : 146) : 190;
   const contentW = book ? measureFocusBookmarkPanelWidth(book) : 0;
   const panelW = Math.max(panelMin, Math.ceil(contentW + panelPad));
   const panelH = book ? measureFocusBookmarkPanelHeight(book, panelW) : 90;
@@ -1857,12 +1857,15 @@ function computeFocusBookmarkMetrics(book, mobile = isMobileFocusCoverLayout()) 
 
 function applyFocusBookmarkLayoutVars(btn, metrics, scale = 1) {
   const s = (Number(scale) || 1) * FOCUS_BOOKMARK.sizeMul * focusCoverMobilePortraitSizeMul();
-  btn.style.setProperty("--region-bookmark-tab", `${metrics.tabH * s}px`);
+  const scaledTab = metrics.tabH * s;
+  const minTab = isMobilePortrait() ? 36 : 28;
+  const tabH = Math.max(minTab, scaledTab);
+  btn.style.setProperty("--region-bookmark-tab", `${tabH}px`);
   btn.style.setProperty("--region-bookmark-panel-w", `${metrics.panelW * s}px`);
   btn.style.setProperty("--region-bookmark-panel-left", `${metrics.panelLeft * s}px`);
   return {
     width: metrics.coverW * s,
-    height: metrics.coverH * s + metrics.tabH * s,
+    height: metrics.coverH * s + tabH,
     imageWidth: metrics.coverW * s,
     imageHeight: metrics.coverH * s,
   };
@@ -2007,15 +2010,15 @@ function isDenseFocusRegionForMobilePortrait() {
 
 function focusCoverMobilePortraitSizeMul() {
   if (!isDenseFocusRegionForMobilePortrait()) return 1;
-  if (state.focusRegionId === "pacific") return 0.66;
-  if (state.focusRegionId === "crescent") return 0.74;
+  if (state.focusRegionId === "pacific") return 0.86;
+  if (state.focusRegionId === "crescent") return 0.92;
   return 1;
 }
 
 function focusCoverMobilePortraitScaleCap() {
   if (!isDenseFocusRegionForMobilePortrait()) return 1;
-  if (state.focusRegionId === "pacific") return 0.42;
-  if (state.focusRegionId === "crescent") return 0.48;
+  if (state.focusRegionId === "pacific") return 0.52;
+  if (state.focusRegionId === "crescent") return 0.56;
   return 0.55;
 }
 
@@ -2345,15 +2348,15 @@ function fitCoverScalesToViewport(entries) {
     const heightScale = (slotHeight - (mobile ? (denseMobile ? 16 : 24) : 32)) / maxUnitH;
     const scale = Math.min(widthScale, heightScale);
     const score = scale * 100 - rows * (mobile ? (denseMobile ? 8 : 6) : 4) - Math.abs(columns - rows) * 0.8;
-    const minSlotWidth = mobile ? (denseMobile ? 84 : 102) : 128;
-    const minSlotHeight = mobile ? (denseMobile ? 96 : 126) : 150;
+    const minSlotWidth = mobile ? (denseMobile ? 96 : 102) : 128;
+    const minSlotHeight = mobile ? (denseMobile ? 112 : 126) : 150;
     if (slotWidth >= minSlotWidth && slotHeight >= minSlotHeight && score > bestScore) {
       bestScore = score;
       bestScale = scale;
     }
   }
 
-  const scaleFloor = mobile ? (denseMobile ? 0.34 : 0.55) : 0.72;
+  const scaleFloor = mobile ? (denseMobile ? 0.44 : 0.55) : 0.72;
   let maxScale = clamp(bestScale, scaleFloor, 1);
   if (denseMobile) {
     maxScale = Math.min(maxScale, focusCoverMobilePortraitScaleCap());
