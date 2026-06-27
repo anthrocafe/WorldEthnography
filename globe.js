@@ -1840,10 +1840,11 @@ function bookForCoverBtn(btn) {
 
 function computeFocusBookmarkMetrics(book, mobile = isMobileFocusCoverLayout()) {
   const aspect = book ? coverAspectForBook(book) : BOOK_COVER_ASPECT_DEFAULT;
-  const panelMin = mobile ? 154 : 188;
-  const panelPad = FOCUS_BOOKMARK.panelPad;
-  const minLeftGap = FOCUS_BOOKMARK.minLeftGap;
-  const minCoverW = mobile ? 146 : 190;
+  const denseMobile = isDenseFocusRegionForMobilePortrait();
+  const panelMin = mobile ? (denseMobile ? 112 : 154) : 188;
+  const panelPad = denseMobile ? 34 : FOCUS_BOOKMARK.panelPad;
+  const minLeftGap = denseMobile ? 26 : FOCUS_BOOKMARK.minLeftGap;
+  const minCoverW = mobile ? (denseMobile ? 104 : 146) : 190;
   const contentW = book ? measureFocusBookmarkPanelWidth(book) : 0;
   const panelW = Math.max(panelMin, Math.ceil(contentW + panelPad));
   const panelH = book ? measureFocusBookmarkPanelHeight(book, panelW) : 90;
@@ -1855,7 +1856,7 @@ function computeFocusBookmarkMetrics(book, mobile = isMobileFocusCoverLayout()) 
 }
 
 function applyFocusBookmarkLayoutVars(btn, metrics, scale = 1) {
-  const s = (Number(scale) || 1) * FOCUS_BOOKMARK.sizeMul;
+  const s = (Number(scale) || 1) * FOCUS_BOOKMARK.sizeMul * focusCoverMobilePortraitSizeMul();
   btn.style.setProperty("--region-bookmark-tab", `${metrics.tabH * s}px`);
   btn.style.setProperty("--region-bookmark-panel-w", `${metrics.panelW * s}px`);
   btn.style.setProperty("--region-bookmark-panel-left", `${metrics.panelLeft * s}px`);
@@ -1997,6 +1998,25 @@ function isMobileFocusLayout() {
 
 function isMobilePortrait() {
   return isMobileFocusLayout() && state.height >= state.width;
+}
+
+function isDenseFocusRegionForMobilePortrait() {
+  if (!isMobilePortrait() || !state.focusRegionId) return false;
+  return state.focusRegionId === "crescent" || state.focusRegionId === "pacific";
+}
+
+function focusCoverMobilePortraitSizeMul() {
+  if (!isDenseFocusRegionForMobilePortrait()) return 1;
+  if (state.focusRegionId === "pacific") return 0.66;
+  if (state.focusRegionId === "crescent") return 0.74;
+  return 1;
+}
+
+function focusCoverMobilePortraitScaleCap() {
+  if (!isDenseFocusRegionForMobilePortrait()) return 1;
+  if (state.focusRegionId === "pacific") return 0.42;
+  if (state.focusRegionId === "crescent") return 0.48;
+  return 0.55;
 }
 
 function syncMobilePortraitClass() {
@@ -2144,14 +2164,8 @@ function syncSplitActiveCoverMetrics(btn, isSplitActive) {
   };
 }
 
-function solveNonOverlappingCoverLayout(entries) {
-  const visibleEntries = entries.filter((entry) => entry.pin && entry.pin.z > 0.04);
-  if (visibleEntries.length === 0) return;
-
-  fitCoverScalesToViewport(visibleEntries);
-  const protectedPins = coverLayoutPinObstacles();
-
-  const items = visibleEntries.map((entry, index) => {
+function buildCoverLayoutItems(entries) {
+  return entries.map((entry, index) => {
     const size = coverVisualSize(entry.btn);
     return {
       entry,
@@ -2161,10 +2175,32 @@ function solveNonOverlappingCoverLayout(entries) {
       pin: entry.pin,
     };
   });
-  const layoutContext = createCoverLayoutContext(items);
+}
+
+function solveNonOverlappingCoverLayout(entries) {
+  const visibleEntries = entries.filter((entry) => entry.pin && entry.pin.z > 0.04);
+  if (visibleEntries.length === 0) return;
+
+  fitCoverScalesToViewport(visibleEntries);
+  const protectedPins = coverLayoutPinObstacles();
+  const items = buildCoverLayoutItems(visibleEntries);
+
+  if (isDenseFocusRegionForMobilePortrait() && items.length > 1) {
+    const fallback = gridFallbackCoverLayout(items, protectedPins);
+    if (fallback.size > 0) {
+      for (const item of items) {
+        const candidate = fallback.get(item);
+        if (!candidate) continue;
+        applyCoverLayoutPosition(item, candidate.x, candidate.y);
+      }
+      refineCoverLayoutAgainstPinsAndOverlaps(visibleEntries);
+      return;
+    }
+  }
 
   if (items.length === 1) {
     const item = items[0];
+    const layoutContext = createCoverLayoutContext(items);
     const candidates = coverLayoutCandidates(item, layoutContext);
     const free = candidates.find((candidate) => !rectOverlapsPinObstacles(candidate.rect, protectedPins));
     let cx;
@@ -2208,6 +2244,8 @@ function solveNonOverlappingCoverLayout(entries) {
     refineCoverLayoutAgainstPinsAndOverlaps(visibleEntries);
     return;
   }
+
+  const layoutContext = createCoverLayoutContext(items);
 
   for (const item of items) {
     item.candidates = coverLayoutCandidates(item, layoutContext);
@@ -2286,8 +2324,9 @@ function coverLayoutPinObstacles() {
 
 function fitCoverScalesToViewport(entries) {
   const mobile = isMobileFocusCoverLayout();
+  const denseMobile = isDenseFocusRegionForMobilePortrait();
   const margin = mobile ? 14 : 18;
-  const gap = mobile ? 14 : 12;
+  const gap = denseMobile ? 10 : mobile ? 14 : 12;
   const count = entries.length;
   const availableWidth = Math.max(140, state.width - margin * 2);
   const bottomReserve = mobile ? Math.max(88, Math.min(128, state.height * 0.14)) : 0;
@@ -2302,21 +2341,45 @@ function fitCoverScalesToViewport(entries) {
     const rows = Math.ceil(count / columns);
     const slotWidth = (availableWidth - gap * (columns - 1)) / columns;
     const slotHeight = (availableHeight - gap * (rows - 1)) / rows;
-    const widthScale = (slotWidth - (mobile ? 18 : 24)) / maxUnitW;
-    const heightScale = (slotHeight - (mobile ? 24 : 32)) / maxUnitH;
+    const widthScale = (slotWidth - (mobile ? (denseMobile ? 12 : 18) : 24)) / maxUnitW;
+    const heightScale = (slotHeight - (mobile ? (denseMobile ? 16 : 24) : 32)) / maxUnitH;
     const scale = Math.min(widthScale, heightScale);
-    const score = scale * 100 - rows * (mobile ? 6 : 4) - Math.abs(columns - rows) * 0.8;
-    const minSlotWidth = mobile ? 102 : 128;
-    const minSlotHeight = mobile ? 126 : 150;
+    const score = scale * 100 - rows * (mobile ? (denseMobile ? 8 : 6) : 4) - Math.abs(columns - rows) * 0.8;
+    const minSlotWidth = mobile ? (denseMobile ? 84 : 102) : 128;
+    const minSlotHeight = mobile ? (denseMobile ? 96 : 126) : 150;
     if (slotWidth >= minSlotWidth && slotHeight >= minSlotHeight && score > bestScore) {
       bestScore = score;
       bestScale = scale;
     }
   }
 
-  const maxScale = clamp(bestScale, mobile ? 0.55 : 0.72, 1);
-  for (const entry of entries) {
-    entry.btn.style.setProperty("--cover-scale", maxScale.toFixed(3));
+  const scaleFloor = mobile ? (denseMobile ? 0.34 : 0.55) : 0.72;
+  let maxScale = clamp(bestScale, scaleFloor, 1);
+  if (denseMobile) {
+    maxScale = Math.min(maxScale, focusCoverMobilePortraitScaleCap());
+  }
+
+  const applyScale = (scale) => {
+    for (const entry of entries) {
+      entry.btn.style.setProperty("--cover-scale", scale.toFixed(3));
+    }
+  };
+
+  applyScale(maxScale);
+
+  if (denseMobile && entries.length > 1) {
+    const protectedPins = coverLayoutPinObstacles();
+    let scale = maxScale;
+    while (scale >= scaleFloor) {
+      const items = buildCoverLayoutItems(entries);
+      const fallback = gridFallbackCoverLayout(items, protectedPins);
+      if (fallback.size === items.length) {
+        applyScale(scale);
+        return;
+      }
+      scale -= 0.035;
+    }
+    applyScale(scaleFloor);
   }
 }
 
@@ -2447,8 +2510,9 @@ function coverLayoutCandidates(item, layoutContext) {
 
 function gridFallbackCoverLayout(items, protectedPins = []) {
   const mobile = isMobileFocusCoverLayout();
+  const denseMobile = isDenseFocusRegionForMobilePortrait();
   const margin = mobile ? 14 : 18;
-  const gap = mobile ? 14 : 12;
+  const gap = denseMobile ? 10 : mobile ? 14 : 12;
   const maxWidth = Math.max(...items.map((item) => item.size.width));
   const maxHeight = Math.max(...items.map((item) => item.size.height));
   const count = items.length;
